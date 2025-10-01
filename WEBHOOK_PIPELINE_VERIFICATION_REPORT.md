@@ -104,7 +104,7 @@ Mock Sync: ✅ SUCCESS
 
 **API Configuration:**
 - Domain: `genwisecrm.myfreshworks.com`
-- API Key: `awiMf4YWS-S4wE_10pUmHQ`
+- API Key: Set via environment variable `FRESHSALES_API_KEY`
 - Rate Limits: 1000/hour, 400/minute
 
 **Known Issue**: Real API key returns 401 errors (possible key expiration or permission changes)

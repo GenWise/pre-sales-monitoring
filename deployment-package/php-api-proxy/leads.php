@@ -5,7 +5,7 @@ header('Access-Control-Allow-Origin: *');
 // Configuration
 $SPREADSHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ';
 $SHEET_NAME = 'Sheet1';
-$GOOGLE_SHEETS_API_KEY = 'AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8';
+$GOOGLE_SHEETS_API_KEY = $_ENV['GOOGLE_SHEETS_API_KEY'] ?? getenv('GOOGLE_SHEETS_API_KEY') ?? '';
 
 try {
     // Build Google Sheets API URL

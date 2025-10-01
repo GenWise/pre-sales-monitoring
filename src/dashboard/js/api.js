@@ -3,7 +3,7 @@ class LeadsAPI {
     constructor() {
         // Configuration - Update these with your actual Google Sheets details
         this.SPREADSHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ'; // Add your Sheet ID from URL
-        this.API_KEY = 'AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8'; // Add your Google Cloud API key
+        this.API_KEY = process.env.GOOGLE_SHEETS_API_KEY || 'YOUR_API_KEY_HERE'; // Add your Google Cloud API key
         this.SHEET_NAME = 'Sheet1'; // Using sheet name, but GID=0 for first sheet
         this.BASE_URL = 'https://sheets.googleapis.com/v4/spreadsheets';
 

@@ -17,7 +17,7 @@
 ### 2. **FreshSales Integration** (MAJOR MISSING COMPONENT)
 - **Status**: Code exists but not integrated into webhook flow
 - **Requirements**: Bidirectional sync between Google Sheets and FreshSales CRM
-- **API Key**: `awiMf4YWS-S4wE_10pUmHQ`
+- **API Key**: Set via environment variable `FRESHSALES_API_KEY`
 - **Domain**: `genwisecrm.myfreshworks.com`
 - **Files**: `/src/api/freshsalesSync.js` (comprehensive implementation exists)
 

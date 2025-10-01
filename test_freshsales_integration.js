@@ -18,7 +18,7 @@ const path = require('path');
 const config = {
     masterSheetId: '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ',
     serviceAccountFile: path.join(__dirname, 'credentials', 'service-account-key.json'),
-    apiKey: 'awiMf4YWS-S4wE_10pUmHQ', // Correct parameter name
+    apiKey: process.env.FRESHSALES_API_KEY || '', // Use environment variable
     domain: 'genwisecrm.myfreshworks.com', // Correct parameter name
     mockMode: true, // Enable mock mode initially for testing
     batchSize: 5,

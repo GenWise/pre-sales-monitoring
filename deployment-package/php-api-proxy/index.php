@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Configuration
 $SPREADSHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ';
 $SHEET_NAME = 'Sheet1';
-$GOOGLE_SHEETS_API_KEY = 'AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8';
+$GOOGLE_SHEETS_API_KEY = $_ENV['GOOGLE_SHEETS_API_KEY'] ?? getenv('GOOGLE_SHEETS_API_KEY') ?? '';
 
 // Get the request path
 $request = $_SERVER['REQUEST_URI'];

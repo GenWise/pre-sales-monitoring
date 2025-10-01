@@ -1,14 +1,14 @@
-// Dashboard Main JavaScript
+// Lead Case Management System
 class PreSalesDashboard {
     constructor() {
         this.leads = [];
         this.filteredLeads = [];
         this.currentPage = 1;
-        this.leadsPerPage = 20;
+        this.leadsPerPage = 25;
         this.sortColumn = 'date';
         this.sortDirection = 'desc';
         this.selectedLeads = new Set();
-        this.charts = {};
+        this.currentUser = 'Rajesh'; // In real system, get from auth
 
         this.init();
     }
@@ -18,11 +18,11 @@ class PreSalesDashboard {
             this.showLoading();
             await this.loadData();
             this.setupEventListeners();
-            this.renderDashboard();
+            this.renderCaseManagement();
             this.hideLoading();
         } catch (error) {
-            console.error('Dashboard initialization failed:', error);
-            this.showToast('Error loading dashboard', 'error');
+            console.error('Case management initialization failed:', error);
+            this.showToast('Error loading case management system', 'error');
             this.hideLoading();
         }
     }
@@ -62,11 +62,15 @@ class PreSalesDashboard {
             this.filterLeads();
         });
 
-        document.getElementById('sourceFilter').addEventListener('change', () => {
+        document.getElementById('ownerFilter').addEventListener('change', () => {
             this.filterLeads();
         });
 
-        document.getElementById('dateFilter').addEventListener('change', () => {
+        document.getElementById('priorityFilter').addEventListener('change', () => {
+            this.filterLeads();
+        });
+
+        document.getElementById('sourceFilter').addEventListener('change', () => {
             this.filterLeads();
         });
 
@@ -119,6 +123,33 @@ class PreSalesDashboard {
             }
         });
 
+        document.getElementById('bulkOwnerUpdate').addEventListener('change', (e) => {
+            if (e.target.value) {
+                this.bulkOwnerUpdate(e.target.value);
+                e.target.value = '';
+            }
+        });
+
+        // Queue management actions
+        document.getElementById('assignToMe').addEventListener('click', () => {
+            this.assignSelectedToMe();
+        });
+
+        document.getElementById('markAsHot').addEventListener('click', () => {
+            this.markSelectedAsHot();
+        });
+
+        document.getElementById('bulkAssign').addEventListener('change', (e) => {
+            if (e.target.value) {
+                this.bulkOwnerUpdate(e.target.value);
+                e.target.value = '';
+            }
+        });
+
+        document.getElementById('scheduleFollowup').addEventListener('click', () => {
+            this.scheduleFollowupForSelected();
+        });
+
         document.getElementById('bulkExport').addEventListener('click', () => {
             this.exportSelected();
         });
@@ -144,250 +175,42 @@ class PreSalesDashboard {
         });
     }
 
-    renderDashboard() {
-        this.renderMetrics();
-        this.renderCharts();
+    renderCaseManagement() {
+        this.renderQueueStats();
         this.renderTable();
     }
 
-    renderMetrics() {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-        // Total leads
-        const totalLeads = this.leads.length;
-        document.getElementById('totalLeads').textContent = totalLeads.toLocaleString();
-
-        // New leads today
-        const newLeadsToday = this.leads.filter(lead =>
-            lead.date === todayStr
+    renderQueueStats() {
+        // Unassigned leads
+        const unassigned = this.leads.filter(lead =>
+            !lead.assignedOwner || lead.assignedOwner === 'Unassigned'
         ).length;
-        document.getElementById('newLeadsToday').textContent = newLeadsToday;
+        document.getElementById('unassignedCount').textContent = unassigned;
 
-        // New leads this week
-        const newLeadsWeek = this.leads.filter(lead =>
-            new Date(lead.date) >= weekAgo
+        // My leads (assigned to current user)
+        const myLeads = this.leads.filter(lead =>
+            lead.assignedOwner === this.currentUser
         ).length;
-        document.getElementById('newLeadsWeek').textContent = `${newLeadsWeek} this week`;
+        document.getElementById('myLeadsCount').textContent = myLeads;
 
-        // Conversion rate
-        const convertedLeads = this.leads.filter(lead =>
-            lead.status === 'Converted'
+        // Hot leads (high priority)
+        const hotLeads = this.leads.filter(lead =>
+            lead.interestLevel === 'High'
         ).length;
-        const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) : 0;
-        document.getElementById('conversionRate').textContent = `${conversionRate}%`;
+        document.getElementById('hotLeadsCount').textContent = hotLeads;
 
-        // Average response time (mock calculation)
-        const avgResponseTime = this.calculateAverageResponseTime();
-        document.getElementById('avgResponseTime').textContent = `${avgResponseTime}h`;
-
-        // Update change indicators
-        this.updateChangeIndicators();
-    }
-
-    calculateAverageResponseTime() {
-        // Mock calculation - in real implementation, you'd track actual response times
-        const contacted = this.leads.filter(lead =>
-            lead.status === 'Contacted' || lead.status === 'Qualified' || lead.status === 'Converted'
-        );
-
-        if (contacted.length === 0) return 0;
-
-        // Simulate response times between 2-48 hours
-        const totalHours = contacted.reduce((sum, lead) => {
-            const leadDate = new Date(lead.date);
-            const dayOfWeek = leadDate.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-            return sum + (isWeekend ? 24 : Math.random() * 12 + 2);
-        }, 0);
-
-        return Math.round(totalHours / contacted.length);
-    }
-
-    updateChangeIndicators() {
-        // Mock change calculations - in real implementation, compare with previous period
-        const totalChange = Math.floor(Math.random() * 20) - 10; // -10 to +10
-        const conversionChange = Math.floor(Math.random() * 10) - 5; // -5 to +5
-
-        const totalChangeEl = document.getElementById('totalLeadsChange');
-        const conversionChangeEl = document.getElementById('conversionChange');
-
-        totalChangeEl.textContent = `${totalChange > 0 ? '+' : ''}${totalChange}% vs last month`;
-        totalChangeEl.className = `metric-change ${totalChange >= 0 ? 'positive' : 'negative'}`;
-
-        conversionChangeEl.textContent = `${conversionChange > 0 ? '+' : ''}${conversionChange}% vs last month`;
-        conversionChangeEl.className = `metric-change ${conversionChange >= 0 ? 'positive' : 'negative'}`;
-    }
-
-    renderCharts() {
-        this.renderStatusChart();
-        this.renderSourceChart();
-        this.renderTrendsChart();
-    }
-
-    renderStatusChart() {
-        const ctx = document.getElementById('statusChart').getContext('2d');
-
-        // Destroy existing chart if it exists
-        if (this.charts.statusChart) {
-            this.charts.statusChart.destroy();
-        }
-
-        const statusCounts = this.leads.reduce((acc, lead) => {
-            acc[lead.status] = (acc[lead.status] || 0) + 1;
-            return acc;
-        }, {});
-
-        const data = {
-            labels: Object.keys(statusCounts),
-            datasets: [{
-                data: Object.values(statusCounts),
-                backgroundColor: [
-                    '#667eea',
-                    '#764ba2',
-                    '#f093fb',
-                    '#f5576c',
-                    '#4facfe',
-                    '#00f2fe',
-                    '#43e97b',
-                    '#38f9d7'
-                ],
-                borderWidth: 0
-            }]
-        };
-
-        this.charts.statusChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    }
-                }
+        // Overdue tasks (follow-ups past due date)
+        const overdue = this.leads.filter(lead => {
+            if (lead.status === 'Follow-up' && lead.followUpDate) {
+                const followUpDate = new Date(lead.followUpDate);
+                const today = new Date();
+                return followUpDate < today;
             }
-        });
+            return false;
+        }).length;
+        document.getElementById('overdueTasks').textContent = overdue;
     }
 
-    renderSourceChart() {
-        const ctx = document.getElementById('sourceChart').getContext('2d');
-
-        if (this.charts.sourceChart) {
-            this.charts.sourceChart.destroy();
-        }
-
-        const sourceCounts = this.leads.reduce((acc, lead) => {
-            acc[lead.source] = (acc[lead.source] || 0) + 1;
-            return acc;
-        }, {});
-
-        const data = {
-            labels: Object.keys(sourceCounts),
-            datasets: [{
-                data: Object.values(sourceCounts),
-                backgroundColor: [
-                    '#667eea',
-                    '#f093fb',
-                    '#4facfe',
-                    '#43e97b'
-                ],
-                borderWidth: 0
-            }]
-        };
-
-        this.charts.sourceChart = new Chart(ctx, {
-            type: 'pie',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    renderTrendsChart() {
-        const ctx = document.getElementById('trendsChart').getContext('2d');
-
-        if (this.charts.trendsChart) {
-            this.charts.trendsChart.destroy();
-        }
-
-        // Generate daily trends for the last 30 days
-        const last30Days = [];
-        const leadCounts = [];
-        const today = new Date();
-
-        for (let i = 29; i >= 0; i--) {
-            const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-            const dateStr = date.toISOString().split('T')[0];
-            last30Days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-
-            const dayLeads = this.leads.filter(lead => lead.date === dateStr).length;
-            leadCounts.push(dayLeads);
-        }
-
-        const data = {
-            labels: last30Days,
-            datasets: [{
-                label: 'New Leads',
-                data: leadCounts,
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#667eea',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        };
-
-        this.charts.trendsChart = new Chart(ctx, {
-            type: 'line',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    }
 
     renderTable() {
         const tbody = document.getElementById('leadsTableBody');
@@ -395,20 +218,47 @@ class PreSalesDashboard {
         const endIndex = startIndex + this.leadsPerPage;
         const pageLeads = this.filteredLeads.slice(startIndex, endIndex);
 
-        tbody.innerHTML = pageLeads.map(lead => `
-            <tr class="${this.selectedLeads.has(lead.id) ? 'selected' : ''}">
+        tbody.innerHTML = pageLeads.map(lead => {
+            const isOverdue = this.isLeadOverdue(lead);
+            const rowClass = this.selectedLeads.has(lead.id) ? 'selected' : '';
+            const urgentClass = isOverdue ? 'urgent' : '';
+            const priorityClass = lead.interestLevel === 'High' ? 'high-priority' : '';
+
+            return `
+            <tr class="${rowClass} ${urgentClass} ${priorityClass}">
                 <td>
                     <input type="checkbox"
                            class="lead-checkbox"
                            data-lead-id="${lead.id}"
                            ${this.selectedLeads.has(lead.id) ? 'checked' : ''}>
                 </td>
-                <td class="lead-name" data-lead-id="${lead.id}">${this.escapeHtml(lead.name)}</td>
+                <td class="lead-name" data-lead-id="${lead.id}">
+                    ${this.escapeHtml(lead.name)}
+                    ${lead.interestLevel === 'High' ? '<i class="fas fa-fire" title="High Priority" style="color: #f56565; margin-left: 5px;"></i>' : ''}
+                    ${isOverdue ? '<i class="fas fa-exclamation-triangle" title="Overdue" style="color: #ed8936; margin-left: 5px;"></i>' : ''}
+                </td>
                 <td>${this.escapeHtml(lead.email)}</td>
                 <td>${this.escapeHtml(lead.mobile || '-')}</td>
-                <td><span class="status-badge status-${lead.status.toLowerCase()}">${lead.status}</span></td>
-                <td>${lead.source}</td>
-                <td>${this.formatDate(lead.date)}</td>
+                <td><span class="status-badge status-${this.getStatusClass(lead.status)}">${lead.status}</span></td>
+                <td>
+                    <div class="owner-cell">
+                        <span class="owner-name">${lead.assignedOwner || 'Unassigned'}</span>
+                        ${!lead.assignedOwner || lead.assignedOwner === 'Unassigned' ?
+                            `<button class="btn-assign" onclick="dashboard.assignLead('${lead.id}', '${this.currentUser}')" title="Assign to me">
+                                <i class="fas fa-user-plus"></i>
+                            </button>` : ''}
+                    </div>
+                </td>
+                <td>
+                    <span class="priority-badge priority-${lead.interestLevel?.toLowerCase() || 'low'}">
+                        ${lead.interestLevel || 'Low'}
+                    </span>
+                </td>
+                <td>${this.getSourceDisplayName(lead.source)}</td>
+                <td>
+                    ${this.formatDate(lead.date)}
+                    ${lead.followUpDate ? `<br><small style="color: #666;">Follow-up: ${this.formatDate(lead.followUpDate)}</small>` : ''}
+                </td>
                 <td>
                     <div class="action-buttons">
                         <button class="action-btn call" onclick="dashboard.callLead('${lead.id}')"
@@ -419,14 +269,23 @@ class PreSalesDashboard {
                                 title="Email Lead">
                             <i class="fas fa-envelope"></i>
                         </button>
-                        <button class="action-btn edit" onclick="dashboard.editLead('${lead.id}')"
-                                title="Edit Lead">
+                        <button class="action-btn status" onclick="dashboard.quickStatusUpdate('${lead.id}')"
+                                title="Update Status">
                             <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn followup" onclick="dashboard.scheduleFollowup('${lead.id}')"
+                                title="Schedule Follow-up">
+                            <i class="fas fa-calendar-plus"></i>
+                        </button>
+                        <button class="action-btn details" onclick="dashboard.editLead('${lead.id}')"
+                                title="View Details">
+                            <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
 
         // Add event listeners for checkboxes and lead names
         tbody.querySelectorAll('.lead-checkbox').forEach(checkbox => {
@@ -468,8 +327,9 @@ class PreSalesDashboard {
     filterLeads() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const statusFilter = document.getElementById('statusFilter').value;
+        const ownerFilter = document.getElementById('ownerFilter').value;
+        const priorityFilter = document.getElementById('priorityFilter').value;
         const sourceFilter = document.getElementById('sourceFilter').value;
-        const dateFilter = document.getElementById('dateFilter').value;
 
         this.filteredLeads = this.leads.filter(lead => {
             const matchesSearch = !searchTerm ||
@@ -478,10 +338,11 @@ class PreSalesDashboard {
                 (lead.mobile && lead.mobile.includes(searchTerm));
 
             const matchesStatus = !statusFilter || lead.status === statusFilter;
+            const matchesOwner = !ownerFilter || (lead.assignedOwner || 'Unassigned') === ownerFilter;
+            const matchesPriority = !priorityFilter || (lead.interestLevel || 'Low') === priorityFilter;
             const matchesSource = !sourceFilter || lead.source === sourceFilter;
-            const matchesDate = !dateFilter || lead.date === dateFilter;
 
-            return matchesSearch && matchesStatus && matchesSource && matchesDate;
+            return matchesSearch && matchesStatus && matchesOwner && matchesPriority && matchesSource;
         });
 
         this.currentPage = 1;
@@ -625,12 +486,32 @@ class PreSalesDashboard {
             <div class="form-group">
                 <label for="editStatus">Status:</label>
                 <select id="editStatus" class="form-input">
-                    <option value="New" ${lead.status === 'New' ? 'selected' : ''}>New</option>
+                    <option value="New Parent" ${lead.status === 'New Parent' ? 'selected' : ''}>New Parent</option>
                     <option value="Contacted" ${lead.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
-                    <option value="Qualified" ${lead.status === 'Qualified' ? 'selected' : ''}>Qualified</option>
-                    <option value="Converted" ${lead.status === 'Converted' ? 'selected' : ''}>Converted</option>
-                    <option value="Lost" ${lead.status === 'Lost' ? 'selected' : ''}>Lost</option>
+                    <option value="Follow-up" ${lead.status === 'Follow-up' ? 'selected' : ''}>Follow-up</option>
+                    <option value="Enrolled" ${lead.status === 'Enrolled' ? 'selected' : ''}>Enrolled</option>
+                    <option value="Not Interested" ${lead.status === 'Not Interested' ? 'selected' : ''}>Not Interested</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="editOwner">Assigned Owner:</label>
+                <select id="editOwner" class="form-input">
+                    <option value="Unassigned" ${(lead.assignedOwner || 'Unassigned') === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
+                    <option value="Rajesh" ${lead.assignedOwner === 'Rajesh' ? 'selected' : ''}>Rajesh</option>
+                    <option value="Team Member" ${lead.assignedOwner === 'Team Member' ? 'selected' : ''}>Team Member</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editPriority">Priority Level:</label>
+                <select id="editPriority" class="form-input">
+                    <option value="Low" ${(lead.interestLevel || 'Low') === 'Low' ? 'selected' : ''}>Low</option>
+                    <option value="Medium" ${lead.interestLevel === 'Medium' ? 'selected' : ''}>Medium</option>
+                    <option value="High" ${lead.interestLevel === 'High' ? 'selected' : ''}>High</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="editFollowUp">Follow-up Date:</label>
+                <input type="date" id="editFollowUp" value="${lead.followUpDate || ''}" class="form-input">
             </div>
             <div class="form-group">
                 <label for="editSource">Source:</label>
@@ -663,6 +544,9 @@ class PreSalesDashboard {
             email: document.getElementById('editEmail').value,
             mobile: document.getElementById('editMobile').value,
             status: document.getElementById('editStatus').value,
+            assignedOwner: document.getElementById('editOwner').value,
+            interestLevel: document.getElementById('editPriority').value,
+            followUpDate: document.getElementById('editFollowUp').value || null,
             notes: document.getElementById('editNotes').value
         };
 
@@ -673,7 +557,7 @@ class PreSalesDashboard {
             Object.assign(lead, updatedData);
 
             this.hideModal();
-            this.renderDashboard();
+            this.renderCaseManagement();
             this.showToast('Lead updated successfully', 'success');
         } catch (error) {
             console.error('Failed to update lead:', error);
@@ -745,7 +629,7 @@ class PreSalesDashboard {
             });
 
             this.clearSelection();
-            this.renderDashboard();
+            this.renderCaseManagement();
             this.showToast(`Updated ${selectedIds.length} leads to ${newStatus}`, 'success');
         } catch (error) {
             console.error('Bulk update failed:', error);
@@ -876,12 +760,265 @@ class PreSalesDashboard {
         });
     }
 
+    // Case Management Helper Methods
+    isLeadOverdue(lead) {
+        if (lead.status === 'Follow-up' && lead.followUpDate) {
+            const followUpDate = new Date(lead.followUpDate);
+            const today = new Date();
+            return followUpDate < today;
+        }
+        return false;
+    }
+
+    getStatusClass(status) {
+        const statusMap = {
+            'New Parent': 'new',
+            'Contacted': 'contacted',
+            'Follow-up': 'followup',
+            'Enrolled': 'enrolled',
+            'Not Interested': 'notinterested'
+        };
+        return statusMap[status] || status.toLowerCase().replace(/\s+/g, '');
+    }
+
+    getSourceDisplayName(source) {
+        const sourceMap = {
+            'returning_students': 'Returning Students',
+            'ats_qualifiers': 'ATS Qualifiers',
+            'website': 'Website',
+            'early_bird': 'Early Bird'
+        };
+        return sourceMap[source] || source;
+    }
+
+    // Case Management Actions
+    async assignLead(leadId, owner) {
+        try {
+            await window.LeadsAPI.updateLead(leadId, { assignedOwner: owner });
+
+            // Update local data
+            const lead = this.leads.find(l => l.id === leadId);
+            if (lead) {
+                lead.assignedOwner = owner;
+            }
+
+            this.renderCaseManagement();
+            this.showToast(`Lead assigned to ${owner}`, 'success');
+        } catch (error) {
+            console.error('Failed to assign lead:', error);
+            this.showToast('Failed to assign lead', 'error');
+        }
+    }
+
+    async assignSelectedToMe() {
+        const selectedIds = Array.from(this.selectedLeads);
+        if (selectedIds.length === 0) {
+            this.showToast('No leads selected', 'warning');
+            return;
+        }
+
+        try {
+            await Promise.all(
+                selectedIds.map(id => window.LeadsAPI.updateLead(id, { assignedOwner: this.currentUser }))
+            );
+
+            // Update local data
+            this.leads.forEach(lead => {
+                if (selectedIds.includes(lead.id)) {
+                    lead.assignedOwner = this.currentUser;
+                }
+            });
+
+            this.clearSelection();
+            this.renderCaseManagement();
+            this.showToast(`Assigned ${selectedIds.length} leads to you`, 'success');
+        } catch (error) {
+            console.error('Bulk assignment failed:', error);
+            this.showToast('Failed to assign leads', 'error');
+        }
+    }
+
+    async markSelectedAsHot() {
+        const selectedIds = Array.from(this.selectedLeads);
+        if (selectedIds.length === 0) {
+            this.showToast('No leads selected', 'warning');
+            return;
+        }
+
+        try {
+            await Promise.all(
+                selectedIds.map(id => window.LeadsAPI.updateLead(id, { interestLevel: 'High' }))
+            );
+
+            // Update local data
+            this.leads.forEach(lead => {
+                if (selectedIds.includes(lead.id)) {
+                    lead.interestLevel = 'High';
+                }
+            });
+
+            this.clearSelection();
+            this.renderCaseManagement();
+            this.showToast(`Marked ${selectedIds.length} leads as high priority`, 'success');
+        } catch (error) {
+            console.error('Failed to update priority:', error);
+            this.showToast('Failed to update priority', 'error');
+        }
+    }
+
+    async bulkOwnerUpdate(newOwner) {
+        const selectedIds = Array.from(this.selectedLeads);
+        if (selectedIds.length === 0) {
+            this.showToast('No leads selected', 'warning');
+            return;
+        }
+
+        try {
+            await Promise.all(
+                selectedIds.map(id => window.LeadsAPI.updateLead(id, { assignedOwner: newOwner }))
+            );
+
+            // Update local data
+            this.leads.forEach(lead => {
+                if (selectedIds.includes(lead.id)) {
+                    lead.assignedOwner = newOwner;
+                }
+            });
+
+            this.clearSelection();
+            this.renderCaseManagement();
+            this.showToast(`Assigned ${selectedIds.length} leads to ${newOwner}`, 'success');
+        } catch (error) {
+            console.error('Bulk assignment failed:', error);
+            this.showToast('Failed to assign leads', 'error');
+        }
+    }
+
+    quickStatusUpdate(leadId) {
+        const lead = this.leads.find(l => l.id === leadId);
+        if (!lead) return;
+
+        const statusOptions = [
+            'New Parent',
+            'Contacted',
+            'Follow-up',
+            'Enrolled',
+            'Not Interested'
+        ];
+
+        const currentIndex = statusOptions.indexOf(lead.status);
+        const nextStatus = statusOptions[(currentIndex + 1) % statusOptions.length];
+
+        this.updateLeadStatus(leadId, nextStatus);
+    }
+
+    async updateLeadStatus(leadId, newStatus) {
+        try {
+            await window.LeadsAPI.updateLead(leadId, { status: newStatus });
+
+            // Update local data
+            const lead = this.leads.find(l => l.id === leadId);
+            if (lead) {
+                lead.status = newStatus;
+            }
+
+            this.renderCaseManagement();
+            this.showToast(`Status updated to ${newStatus}`, 'success');
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            this.showToast('Failed to update status', 'error');
+        }
+    }
+
+    scheduleFollowup(leadId) {
+        const lead = this.leads.find(l => l.id === leadId);
+        if (!lead) return;
+
+        const followUpDate = prompt('Enter follow-up date (YYYY-MM-DD):');
+        if (followUpDate && this.isValidDate(followUpDate)) {
+            this.setFollowUpDate(leadId, followUpDate);
+        } else if (followUpDate) {
+            this.showToast('Invalid date format. Please use YYYY-MM-DD', 'error');
+        }
+    }
+
+    scheduleFollowupForSelected() {
+        const selectedIds = Array.from(this.selectedLeads);
+        if (selectedIds.length === 0) {
+            this.showToast('No leads selected', 'warning');
+            return;
+        }
+
+        const followUpDate = prompt('Enter follow-up date for selected leads (YYYY-MM-DD):');
+        if (followUpDate && this.isValidDate(followUpDate)) {
+            this.bulkSetFollowUpDate(selectedIds, followUpDate);
+        } else if (followUpDate) {
+            this.showToast('Invalid date format. Please use YYYY-MM-DD', 'error');
+        }
+    }
+
+    async setFollowUpDate(leadId, followUpDate) {
+        try {
+            await window.LeadsAPI.updateLead(leadId, {
+                followUpDate: followUpDate,
+                status: 'Follow-up'
+            });
+
+            // Update local data
+            const lead = this.leads.find(l => l.id === leadId);
+            if (lead) {
+                lead.followUpDate = followUpDate;
+                lead.status = 'Follow-up';
+            }
+
+            this.renderCaseManagement();
+            this.showToast(`Follow-up scheduled for ${followUpDate}`, 'success');
+        } catch (error) {
+            console.error('Failed to schedule follow-up:', error);
+            this.showToast('Failed to schedule follow-up', 'error');
+        }
+    }
+
+    async bulkSetFollowUpDate(leadIds, followUpDate) {
+        try {
+            await Promise.all(
+                leadIds.map(id => window.LeadsAPI.updateLead(id, {
+                    followUpDate: followUpDate,
+                    status: 'Follow-up'
+                }))
+            );
+
+            // Update local data
+            this.leads.forEach(lead => {
+                if (leadIds.includes(lead.id)) {
+                    lead.followUpDate = followUpDate;
+                    lead.status = 'Follow-up';
+                }
+            });
+
+            this.clearSelection();
+            this.renderCaseManagement();
+            this.showToast(`Follow-up scheduled for ${leadIds.length} leads`, 'success');
+        } catch (error) {
+            console.error('Bulk follow-up scheduling failed:', error);
+            this.showToast('Failed to schedule follow-ups', 'error');
+        }
+    }
+
+    isValidDate(dateString) {
+        const regex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regex.test(dateString)) return false;
+
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date);
+    }
+
     async refreshData() {
         this.showLoading();
         try {
             await this.loadData();
-            this.renderDashboard();
-            this.showToast('Dashboard refreshed successfully', 'success');
+            this.renderCaseManagement();
+            this.showToast('Case management system refreshed successfully', 'success');
         } catch (error) {
             console.error('Failed to refresh data:', error);
             this.showToast('Failed to refresh data', 'error');

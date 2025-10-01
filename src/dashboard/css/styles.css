@@ -901,3 +901,225 @@ body {
         color: #333 !important;
     }
 }
+
+/* Case Management Queue Styles */
+.queue-section {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.queue-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.queue-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 12px;
+    min-width: 100px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+    line-height: 1;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.queue-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.form-select {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: white;
+    cursor: pointer;
+    min-width: 180px;
+}
+
+/* Case Management Table Enhancements */
+.leads-table tr.urgent {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+    border-left: 4px solid #ffc107;
+}
+
+.leads-table tr.high-priority {
+    background-color: rgba(220, 53, 69, 0.05) !important;
+}
+
+.leads-table tr.urgent.high-priority {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+    border-left: 4px solid #dc3545;
+}
+
+.owner-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.owner-name {
+    flex: 1;
+}
+
+.btn-assign {
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.btn-assign:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #5a67d8;
+}
+
+/* Priority and Status Badges */
+.priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-high {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.priority-medium {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.priority-low {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.3);
+}
+
+/* Updated Status Badges */
+.status-badge.status-newparent,
+.status-badge.status-new {
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    border: 1px solid rgba(13, 110, 253, 0.3);
+}
+
+.status-badge.status-contacted {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-badge.status-followup,
+.status-badge.status-follow-up {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.status-badge.status-enrolled {
+    background: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.3);
+}
+
+.status-badge.status-notinterested,
+.status-badge.status-not-interested {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+/* Enhanced Action Buttons */
+.action-btn.status:hover { color: #667eea; }
+.action-btn.followup:hover { color: #28a745; }
+.action-btn.details:hover { color: #6c757d; }
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #212529;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.btn-warning:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(255, 193, 7, 0.4);
+}
+
+/* Bulk Actions Enhancement */
+.bulk-actions select {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: white;
+    cursor: pointer;
+    min-width: 160px;
+}
+
+/* Responsive adjustments for case management */
+@media (max-width: 768px) {
+    .queue-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .queue-stats {
+        justify-content: center;
+    }
+
+    .stat-item {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    .queue-actions {
+        justify-content: center;
+    }
+
+    .owner-cell {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}

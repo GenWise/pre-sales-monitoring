@@ -17,7 +17,7 @@ class FreshSalesSyncTester {
         this.config = {
             masterSheetId: '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ',
             serviceAccountFile: path.join(__dirname, 'credentials', 'service-account-key.json'),
-            freshsalesApiKey: 'awiMf4YWS-S4wE_10pUmHQ',
+            freshsalesApiKey: process.env.FRESHSALES_API_KEY || '',
             freshsalesDomain: 'genwisecrm.myfreshworks.com',
             freshsalesViewId: '402002860065' // All Contacts view
         };

@@ -10,14 +10,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <h1><i class="fas fa-chart-line"></i> Pre-Sales Dashboard</h1>
+                <h1><i class="fas fa-tasks"></i> Lead Management System</h1>
             </div>
             <div class="header-actions">
                 <button class="btn btn-secondary" id="refreshBtn">
@@ -38,78 +37,40 @@
 
     <!-- Main Container -->
     <div class="container">
-        <!-- Lead Overview Section -->
-        <section class="overview-section">
-            <h2 class="section-title">Lead Overview</h2>
-            <div class="overview-grid">
-                <div class="metric-card total-leads">
-                    <div class="metric-icon">
-                        <i class="fas fa-users"></i>
+        <!-- Case Management Queue -->
+        <section class="queue-section">
+            <h2 class="section-title">Lead Assignment Queue</h2>
+            <div class="queue-controls">
+                <div class="queue-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="unassignedCount">-</span>
+                        <span class="stat-label">Unassigned</span>
                     </div>
-                    <div class="metric-content">
-                        <h3 id="totalLeads">-</h3>
-                        <p>Total Leads</p>
-                        <span class="metric-change" id="totalLeadsChange">-</span>
+                    <div class="stat-item">
+                        <span class="stat-number" id="myLeadsCount">-</span>
+                        <span class="stat-label">My Leads</span>
                     </div>
-                </div>
-
-                <div class="metric-card new-leads">
-                    <div class="metric-icon">
-                        <i class="fas fa-user-plus"></i>
+                    <div class="stat-item">
+                        <span class="stat-number" id="hotLeadsCount">-</span>
+                        <span class="stat-label">Hot Leads</span>
                     </div>
-                    <div class="metric-content">
-                        <h3 id="newLeadsToday">-</h3>
-                        <p>New Today</p>
-                        <span class="metric-subtext" id="newLeadsWeek">- this week</span>
+                    <div class="stat-item">
+                        <span class="stat-number" id="overdueTasks">-</span>
+                        <span class="stat-label">Overdue</span>
                     </div>
                 </div>
-
-                <div class="metric-card conversion-rate">
-                    <div class="metric-icon">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <div class="metric-content">
-                        <h3 id="conversionRate">-</h3>
-                        <p>Conversion Rate</p>
-                        <span class="metric-change positive" id="conversionChange">-</span>
-                    </div>
-                </div>
-
-                <div class="metric-card response-time">
-                    <div class="metric-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="metric-content">
-                        <h3 id="avgResponseTime">-</h3>
-                        <p>Avg Response Time</p>
-                        <span class="metric-subtext">in hours</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Charts Section -->
-        <section class="charts-section">
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <h3>Lead Status Distribution</h3>
-                    <div class="chart-container">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>Lead Sources</h3>
-                    <div class="chart-container">
-                        <canvas id="sourceChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card wide">
-                    <h3>Daily Lead Trends</h3>
-                    <div class="chart-container">
-                        <canvas id="trendsChart"></canvas>
-                    </div>
+                <div class="queue-actions">
+                    <button class="btn btn-primary" id="assignToMe">
+                        <i class="fas fa-user-check"></i> Assign Selected to Me
+                    </button>
+                    <button class="btn btn-secondary" id="markAsHot">
+                        <i class="fas fa-fire"></i> Mark as Hot
+                    </button>
+                    <select id="bulkAssign" class="form-select">
+                        <option value="">Assign to Team Member...</option>
+                        <option value="Rajesh">Rajesh</option>
+                        <option value="Team Member">Team Member</option>
+                    </select>
                 </div>
             </div>
         </section>
@@ -126,20 +87,31 @@
                     <div class="filter-container">
                         <select id="statusFilter">
                             <option value="">All Status</option>
-                            <option value="New">New</option>
+                            <option value="New Parent">New Parent</option>
                             <option value="Contacted">Contacted</option>
-                            <option value="Qualified">Qualified</option>
-                            <option value="Converted">Converted</option>
-                            <option value="Lost">Lost</option>
+                            <option value="Follow-up">Follow-up</option>
+                            <option value="Enrolled">Enrolled</option>
+                            <option value="Not Interested">Not Interested</option>
+                        </select>
+                        <select id="ownerFilter">
+                            <option value="">All Owners</option>
+                            <option value="Unassigned">Unassigned</option>
+                            <option value="Rajesh">Rajesh</option>
+                            <option value="Team Member">Team Member</option>
+                        </select>
+                        <select id="priorityFilter">
+                            <option value="">All Priorities</option>
+                            <option value="High">High Priority</option>
+                            <option value="Medium">Medium Priority</option>
+                            <option value="Low">Low Priority</option>
                         </select>
                         <select id="sourceFilter">
                             <option value="">All Sources</option>
-                            <option value="returning_students">Form 1</option>
-                            <option value="ats_qualifiers">Form 2</option>
-                            <option value="website">Form 3</option>
-                            <option value="early_bird">Form 4</option>
+                            <option value="returning_students">Returning Students</option>
+                            <option value="ats_qualifiers">ATS Qualifiers</option>
+                            <option value="website">Website</option>
+                            <option value="early_bird">Early Bird</option>
                         </select>
-                        <input type="date" id="dateFilter">
                     </div>
                 </div>
             </div>
@@ -153,9 +125,11 @@
                             <th class="sortable" data-sort="email">Email <i class="fas fa-sort"></i></th>
                             <th class="sortable" data-sort="mobile">Mobile <i class="fas fa-sort"></i></th>
                             <th class="sortable" data-sort="status">Status <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="assignedOwner">Owner <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="interestLevel">Priority <i class="fas fa-sort"></i></th>
                             <th class="sortable" data-sort="source">Source <i class="fas fa-sort"></i></th>
                             <th class="sortable" data-sort="date">Date <i class="fas fa-sort"></i></th>
-                            <th>Actions</th>
+                            <th>Quick Actions</th>
                         </tr>
                     </thead>
                     <tbody id="leadsTableBody">
@@ -194,10 +168,19 @@
                 <select id="bulkStatusUpdate">
                     <option value="">Update Status...</option>
                     <option value="Contacted">Mark as Contacted</option>
-                    <option value="Qualified">Mark as Qualified</option>
-                    <option value="Converted">Mark as Converted</option>
-                    <option value="Lost">Mark as Lost</option>
+                    <option value="Follow-up">Schedule Follow-up</option>
+                    <option value="Enrolled">Mark as Enrolled</option>
+                    <option value="Not Interested">Mark Not Interested</option>
                 </select>
+                <select id="bulkOwnerUpdate">
+                    <option value="">Assign Owner...</option>
+                    <option value="Rajesh">Assign to Rajesh</option>
+                    <option value="Team Member">Assign to Team Member</option>
+                    <option value="Unassigned">Mark Unassigned</option>
+                </select>
+                <button class="btn btn-warning" id="scheduleFollowup">
+                    <i class="fas fa-calendar-plus"></i> Schedule Follow-up
+                </button>
                 <button class="btn btn-secondary" id="bulkExport">
                     <i class="fas fa-download"></i> Export Selected
                 </button>

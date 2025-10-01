@@ -5,7 +5,7 @@
 - **Service Account**: `sheetspython@sheets-and-python-340711.iam.gserviceaccount.com`
 - **Dashboard URL**: https://dashboard.giftedworld.org
 - **Dashboard Directory**: `/home/u191176295/domains/giftedworld.org/public_html/dashboard`
-- **Google Sheets API Key**: `AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8`
+- **Google Sheets API Key**: Set via environment variable `GOOGLE_SHEETS_API_KEY`
 
 ## Critical Data Validation Rules
 

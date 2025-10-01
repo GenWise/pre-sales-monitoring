@@ -12,7 +12,7 @@
 ## 📊 VERIFIED WORKING ENDPOINTS
 
 ### FreshSales API - CONFIRMED WORKING ✅
-- **Authentication**: `Authorization: Token token=awiMf4YWS-S4wE_10pUmHQ`
+- **Authentication**: `Authorization: Token token=<FRESHSALES_API_KEY>`
 - **Domain**: `genwisecrm.myfreshworks.com`
 - **Contact View**: `/crm/sales/api/contacts/view/402002860065` (25 contacts accessible)
 - **Search**: `/crm/sales/api/search?q={email}&include=contact`

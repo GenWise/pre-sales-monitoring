@@ -46,7 +46,8 @@ async function verifyFix() {
     // Test 3: Check old API (should still get 403)
     console.log('\n3. Verifying old direct API still gets 403...');
     try {
-        const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ?key=AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8');
+        const apiKey = process.env.GOOGLE_SHEETS_API_KEY || 'YOUR_API_KEY_HERE';
+        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ?key=${apiKey}`);
 
         if (response.status === 403) {
             console.log('✅ Direct API correctly returns 403 (as expected)');

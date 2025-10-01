@@ -89,3 +89,28 @@ temp/
 # Build outputs
 dist/
 build/
+
+# Additional security patterns
+# API Keys and secrets
+**/config/secrets.*
+**/config/keys.*
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Environment and config files that may contain secrets
+config.json
+config.local.json
+secrets.json
+local.json
+
+# Backup files that may contain sensitive data
+*.bak
+*.backup
+*.orig
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db

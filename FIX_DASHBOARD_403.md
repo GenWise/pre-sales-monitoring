@@ -2,7 +2,7 @@
 
 ## Problem Identified
 The dashboard at dashboard.giftedworld.org is getting a **403 PERMISSION_DENIED** error because:
-- API Key `AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8` has HTTP referrer restrictions
+- API Key has HTTP referrer restrictions
 - Requests are being blocked with error: "API_KEY_HTTP_REFERRER_BLOCKED"
 
 ## Solution Options
@@ -11,7 +11,7 @@ The dashboard at dashboard.giftedworld.org is getting a **403 PERMISSION_DENIED*
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Navigate to **APIs & Services** → **Credentials**
-3. Find API key: `AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8`
+3. Find your Google Sheets API key
 4. Click on it to edit
 5. Under **Application restrictions**, choose one of:
    - **None** (least secure but works immediately)
@@ -42,13 +42,13 @@ Since you already have a service account (`sheetspython@sheets-and-python-340711
 ## Quick Test
 After fixing, test with:
 ```bash
-curl "https://sheets.googleapis.com/v4/spreadsheets/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ?key=AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8"
+curl "https://sheets.googleapis.com/v4/spreadsheets/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ?key=YOUR_API_KEY"
 ```
 
 Should return sheet metadata instead of 403 error.
 
 ## Current Status
 - Sheet ID: `1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ` ✅
-- API Key: `AIzaSyDcSU0QHFQmdudhLff3-LQNFCsXArvqXY8` ✅
+- API Key: `YOUR_API_KEY` ✅
 - Service Account: Has editor access ✅
 - Issue: API key HTTP referrer restrictions ❌

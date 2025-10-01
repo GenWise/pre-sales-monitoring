@@ -147,7 +147,7 @@
   "config": {
     "masterSheetId": "1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ",
     "serviceAccountFile": "/Users/rajeshpanchanathan/code/pre-sales-monitoring/credentials/service-account-key.json",
-    "apiKey": "awiMf4YWS-S4wE_10pUmHQ",
+    "apiKey": "[REDACTED]",
     "domain": "genwisecrm.myfreshworks.com",
     "mockMode": true,
     "batchSize": 5,

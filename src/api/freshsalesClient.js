@@ -16,7 +16,7 @@ const https = require('https');
 class FreshSalesClient {
     constructor(config = {}) {
         // Production configuration with verified working credentials
-        this.apiKey = config.apiKey || process.env.FRESHSALES_API_KEY || 'awiMf4YWS-S4wE_10pUmHQ';
+        this.apiKey = config.apiKey || process.env.FRESHSALES_API_KEY || '';
         this.domain = config.domain || process.env.FRESHSALES_DOMAIN || 'genwisecrm.myfreshworks.com';
         this.baseUrl = `https://${this.domain}/crm/sales/api`;
 
