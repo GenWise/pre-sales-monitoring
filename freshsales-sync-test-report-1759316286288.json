@@ -1,0 +1,333 @@
+{
+  "timestamp": "2025-10-01T10:58:06.288Z",
+  "environment": "production_test",
+  "configuration": {
+    "masterSheetId": "1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ",
+    "freshsalesDomain": "genwisecrm.myfreshworks.com",
+    "serviceAccountFile": "configured"
+  },
+  "results": {
+    "tests": {
+      "API Connectivity": {
+        "status": "PASSED",
+        "result": {
+          "timestamp": "2025-10-01T10:58:01.020Z",
+          "mockMode": false,
+          "tests": {
+            "contactFields": {
+              "status": "success",
+              "message": "Contact fields metadata accessible"
+            },
+            "search": {
+              "status": "success",
+              "message": "Search functionality accessible"
+            },
+            "activities": {
+              "status": "success",
+              "message": "Activities endpoint accessible"
+            },
+            "contactRead": {
+              "status": "expected_failure",
+              "message": "Contact read permissions denied (expected based on research)"
+            }
+          }
+        },
+        "timestamp": "2025-10-01T10:58:01.703Z"
+      },
+      "Google Sheets Access": {
+        "status": "FAILED",
+        "error": "doc.useServiceAccountAuth is not a function",
+        "timestamp": "2025-10-01T10:58:01.708Z"
+      },
+      "FreshSales Endpoints": {
+        "status": "PASSED",
+        "result": {
+          "contactFields": {
+            "status": "success",
+            "fieldCount": 77
+          },
+          "contactsView": {
+            "status": "success",
+            "contactCount": 25
+          },
+          "search": {
+            "status": "success",
+            "resultCount": 0
+          }
+        },
+        "timestamp": "2025-10-01T10:58:02.975Z"
+      },
+      "Field Mapping": {
+        "status": "PASSED",
+        "result": {
+          "originalLead": {
+            "Timestamp": "2025-10-01T10:58:02.976Z",
+            "Child Name": "Test Child",
+            "Parent Name": "Test Parent",
+            "Parent Email": "test@example.com",
+            "Parent Mobile": "+91-9876543210",
+            "Child Grade": "Grade 3",
+            "Program": "GSP",
+            "Interest Level": "Hot",
+            "Geography": "Mumbai"
+          },
+          "mappedContact": {
+            "first_name": "Test",
+            "last_name": "Child",
+            "emails": [
+              {
+                "value": "test@example.com",
+                "is_primary": true,
+                "label": "work"
+              }
+            ],
+            "mobile_number": "+919876543210",
+            "contact_status_id": 402000446647,
+            "lead_source_id": "Web",
+            "description": "Parent: Test Parent | Child Grade: Grade 3 | Program Interest: GSP | Initial Contact: 2025-10-01T10:58:02.976Z",
+            "tags": [
+              "program:gsp",
+              "grade:grade_3",
+              "pre_sales_lead"
+            ],
+            "cf_child_grade": "Grade 3",
+            "cf_program": "GSP",
+            "country": "Mumbai"
+          },
+          "reverseMapped": {
+            "freshsalesId": "test_123",
+            "childName": "Test Child",
+            "parentName": "Test Child",
+            "parentEmail": "test@example.com",
+            "parentMobile": "+919876543210",
+            "interestLevel": "Hot",
+            "tags": "",
+            "lastUpdated": "2025-10-01T10:58:02.981Z"
+          }
+        },
+        "timestamp": "2025-10-01T10:58:02.981Z"
+      },
+      "Contact Search": {
+        "status": "FAILED",
+        "error": "doc.useServiceAccountAuth is not a function",
+        "timestamp": "2025-10-01T10:58:02.982Z"
+      },
+      "Contact Creation (Mock)": {
+        "status": "FAILED",
+        "error": "Cannot read properties of undefined (reading 'contact')",
+        "timestamp": "2025-10-01T10:58:03.203Z"
+      },
+      "Sync Engine": {
+        "status": "PASSED",
+        "result": {
+          "timestamp": "2025-10-01T10:58:03.203Z",
+          "tests": {
+            "connectivity": {
+              "status": "success",
+              "data": {
+                "timestamp": "2025-10-01T10:58:03.203Z",
+                "mockMode": false,
+                "tests": {
+                  "contactFields": {
+                    "status": "success",
+                    "message": "Contact fields metadata accessible"
+                  },
+                  "search": {
+                    "status": "success",
+                    "message": "Search functionality accessible"
+                  },
+                  "activities": {
+                    "status": "success",
+                    "message": "Activities endpoint accessible"
+                  },
+                  "contactRead": {
+                    "status": "expected_failure",
+                    "message": "Contact read permissions denied (expected based on research)"
+                  }
+                }
+              }
+            },
+            "fieldMapping": {
+              "status": "success",
+              "originalLead": {
+                "Timestamp": "2025-10-01T10:58:03.582Z",
+                "Child Name": "Mock Child 1",
+                "Parent Name": "Mock Parent 1",
+                "Parent Email": "parent1@mockmail.com",
+                "Parent Mobile": "+918177098715",
+                "Child Grade": "Grade 1",
+                "Program": "GSP",
+                "Interest Level": "Interested",
+                "Geography": "Mock City"
+              },
+              "mappedContact": {
+                "first_name": "Mock",
+                "last_name": "Child 1",
+                "emails": [
+                  {
+                    "value": "parent1@mockmail.com",
+                    "is_primary": true,
+                    "label": "work"
+                  }
+                ],
+                "mobile_number": "+918177098715",
+                "contact_status_id": 402000446645,
+                "lead_source_id": "Web",
+                "description": "Parent: Mock Parent 1 | Child Grade: Grade 1 | Program Interest: GSP | Initial Contact: 2025-10-01T10:58:03.582Z",
+                "tags": [
+                  "program:gsp",
+                  "grade:grade_1",
+                  "pre_sales_lead"
+                ],
+                "cf_child_grade": "Grade 1",
+                "cf_program": "GSP",
+                "country": "Mock City"
+              },
+              "reverseMapped": {
+                "freshsalesId": "mock_123",
+                "childName": "Mock Child 1",
+                "parentName": "Mock Child 1",
+                "parentEmail": "parent1@mockmail.com",
+                "parentMobile": "+918177098715",
+                "interestLevel": "Interested",
+                "tags": ""
+              }
+            },
+            "mockSync": {
+              "status": "success",
+              "data": {
+                "success": true,
+                "message": "Sync completed successfully",
+                "timestamp": "2025-10-01T10:58:04.304Z",
+                "stats": {
+                  "processed": 2,
+                  "created": 0,
+                  "updated": 0,
+                  "skipped": 0,
+                  "errors": 2,
+                  "duplicates": 0
+                },
+                "rateLimits": {
+                  "hourly": {
+                    "limit": 1000,
+                    "remaining": 965,
+                    "resetTime": "2319-05-17T11:45:45.000Z"
+                  },
+                  "perMinute": {
+                    "limit": 400,
+                    "remaining": 383,
+                    "resetTime": "2319-05-17T09:25:01.000Z"
+                  }
+                },
+                "mockMode": true
+              }
+            }
+          }
+        },
+        "timestamp": "2025-10-01T10:58:04.304Z"
+      },
+      "Bidirectional Sync": {
+        "status": "PASSED",
+        "result": {
+          "toFreshSales": {
+            "success": true,
+            "message": "Sync completed successfully",
+            "timestamp": "2025-10-01T10:58:05.054Z",
+            "stats": {
+              "processed": 2,
+              "created": 0,
+              "updated": 0,
+              "skipped": 0,
+              "errors": 2,
+              "duplicates": 0
+            },
+            "rateLimits": {
+              "hourly": {
+                "limit": 1000,
+                "remaining": 959,
+                "resetTime": "2319-05-17T11:45:45.000Z"
+              },
+              "perMinute": {
+                "limit": 400,
+                "remaining": 377,
+                "resetTime": "2319-05-17T09:25:01.000Z"
+              }
+            },
+            "mockMode": true
+          },
+          "fromFreshSales": {
+            "success": false,
+            "message": "Reverse sync failed: doc.useServiceAccountAuth is not a function",
+            "timestamp": "2025-10-01T10:58:05.949Z",
+            "stats": {
+              "processed": 0,
+              "created": 0,
+              "updated": 0,
+              "skipped": 0,
+              "errors": 0,
+              "duplicates": 0
+            },
+            "rateLimits": {
+              "hourly": {
+                "limit": 1000,
+                "remaining": 958,
+                "resetTime": "2319-05-17T11:45:45.000Z"
+              },
+              "perMinute": {
+                "limit": 400,
+                "remaining": 376,
+                "resetTime": "2319-05-17T09:25:01.000Z"
+              }
+            },
+            "mockMode": true
+          }
+        },
+        "timestamp": "2025-10-01T10:58:05.949Z"
+      },
+      "Error Handling": {
+        "status": "PASSED",
+        "result": {
+          "invalidApiKey": {
+            "status": "correctly_handled",
+            "error": "HTTP 401: Incorrect or expired API key"
+          },
+          "invalidSheetId": {
+            "status": "correctly_handled",
+            "error": "doc.useServiceAccountAuth is not a function"
+          }
+        },
+        "timestamp": "2025-10-01T10:58:06.046Z"
+      },
+      "Rate Limiting": {
+        "status": "PASSED",
+        "result": {
+          "requestCount": 3,
+          "duration": 241,
+          "rateLimitStatus": {
+            "hourly": {
+              "limit": 1000,
+              "remaining": 955,
+              "resetTime": "2319-05-17T11:45:45.000Z"
+            },
+            "perMinute": {
+              "limit": 400,
+              "remaining": 373,
+              "resetTime": "2319-05-17T09:25:01.000Z"
+            }
+          }
+        },
+        "timestamp": "2025-10-01T10:58:06.288Z"
+      }
+    },
+    "summary": {
+      "total": 10,
+      "passed": 7,
+      "failed": 3,
+      "warnings": 0
+    }
+  },
+  "recommendations": [
+    "Verify service account credentials and sheet permissions",
+    "Review field mapping and contact creation logic"
+  ]
+}

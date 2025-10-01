@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-09-30T19:17:55.159Z",
+  "testResults": [
+    {
+      "form": "returning_students",
+      "webhook": true,
+      "webhookResult": {
+        "success": true,
+        "message": "Form submission processed successfully",
+        "data": {
+          "success": true,
+          "rowNumber": 5,
+          "isDuplicate": false,
+          "data": {
+            "Child Name": "Test Child returning_students",
+            "Parent Name": "Test Parent returning_students",
+            "Parent Email": "form1.test@automation.com",
+            "Parent Mobile": "9001234567",
+            "Interest Level": "High",
+            "Source Tag": "returning_students",
+            "Timestamp": "2025-09-30T19:17:39.312Z",
+            "Duplicate Flag": "No",
+            "Status": "New Parent",
+            "Assigned Owner": "",
+            "Notes": ""
+          }
+        }
+      }
+    },
+    {
+      "form": "ats_qualifiers",
+      "webhook": false,
+      "error": "HTTP 500"
+    },
+    {
+      "form": "website",
+      "webhook": false,
+      "error": "HTTP 500"
+    },
+    {
+      "form": "early_bird",
+      "webhook": true,
+      "webhookResult": {
+        "success": true,
+        "message": "Form submission processed successfully",
+        "data": {
+          "success": true,
+          "rowNumber": 6,
+          "isDuplicate": false,
+          "data": {
+            "Child Name": "Test Child early_bird",
+            "Parent Name": "Test Parent early_bird",
+            "Parent Email": "form4.test@automation.com",
+            "Parent Mobile": "",
+            "Interest Level": "High",
+            "Source Tag": "early_bird",
+            "Timestamp": "2025-09-30T19:17:46.317Z",
+            "Duplicate Flag": "No",
+            "Status": "New Parent",
+            "Assigned Owner": "",
+            "Notes": ""
+          }
+        }
+      }
+    }
+  ],
+  "allTestsPassed": false,
+  "testedForms": 4,
+  "passedTests": 2
+}

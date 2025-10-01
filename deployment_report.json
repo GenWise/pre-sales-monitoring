@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-09-30T18:42:52.419Z",
+  "results": [
+    {
+      "success": false,
+      "form": "returning_students",
+      "error": "Node is either not clickable or not an Element"
+    },
+    {
+      "success": false,
+      "form": "ats_qualifiers",
+      "error": "Node is either not clickable or not an Element"
+    },
+    {
+      "success": false,
+      "form": "website",
+      "error": "Could not find three dots menu button"
+    },
+    {
+      "success": false,
+      "form": "early_bird",
+      "error": "Node is either not clickable or not an Element"
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "successful": 0,
+    "failed": 4
+  }
+}

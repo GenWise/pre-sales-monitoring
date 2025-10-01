@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-09-30T19:47:10.702Z",
+  "version": "1.0.0",
+  "environment": "production",
+  "components": {
+    "proxyAPI": {
+      "file": "dashboard_api_proxy.js",
+      "port": 3002,
+      "processManager": "PM2",
+      "healthEndpoint": "https://dashboard.giftedworld.org/api-proxy/health"
+    },
+    "dashboard": {
+      "files": [
+        "js/api-proxy.js"
+      ],
+      "url": "https://dashboard.giftedworld.org",
+      "features": "meaningful_form_names"
+    },
+    "authentication": {
+      "method": "service_account",
+      "file": "service-account-key.json",
+      "permissions": "sheets_readonly"
+    }
+  },
+  "deployment": {
+    "method": "automated_script",
+    "verification": "health_checks_included",
+    "rollback": "pm2_restart_available"
+  },
+  "testing": {
+    "endpoints": [
+      "https://dashboard.giftedworld.org/api-proxy/health",
+      "https://dashboard.giftedworld.org/api-proxy/api/leads",
+      "https://dashboard.giftedworld.org"
+    ],
+    "verification_script": "verify.sh"
+  }
+}

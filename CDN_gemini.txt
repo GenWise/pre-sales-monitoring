@@ -1,0 +1,85 @@
+Examining PHP Issues
+
+I'm currently focused on deconstructing the user's reported problem. Specifically, I'm trying to identify the core issue, which seems to revolve around new PHP files on a Hostinger shared hosting account returning errors. I'm exploring common causes, and thinking of ways to efficiently gather more information. My next step will be to formulate a troubleshooting strategy.
+
+Analyzing Hostinger CDN
+
+I'm now diving deeper into the Hostinger CDN. It appears the problem isn't just about 404s, but a persistent caching issue. I've confirmed file existence and correct permissions, and the time-based nature points strongly to CDN caching. I'm focusing on cache-busting techniques and ways to force a refresh for the problematic webhook.php, form_webhook_2025.php, and debug.php files. This is my immediate priority, given the tight deadline for the Google Apps Script integration.
+
+Pinpointing CDN Caching
+
+I've narrowed the focus, strongly suspecting the CDN is the issue.  After initial troubleshooting, file existence and permissions are confirmed. The time-based behavior is the biggest clue, pointing towards caching.  Currently, I'm concentrating on cache-busting methods.  I'm brainstorming how to quickly invalidate or refresh the CDN's cache for those troublesome files: webhook.php, form_webhook_2025.php, and debug.php.
+
+Formulating Cache-Busting Solutions
+
+I'm now actively developing practical cache-busting solutions. The focus remains on efficiently invalidating the CDN cache. I'm prioritizing methods like adding unique query strings to the problematic file URLs, which is a simple and effective workaround. Additionally, I'm exploring URL rewriting as a more robust long-term approach, though this may require access to the .htaccess file which might be restricted on shared hosting. I'm also considering creating a simple php script that modifies .htaccess to add a query string.
+
+Exploring Immediate Caching Solutions
+
+I'm now prioritizing the most direct route: purging the Hostinger CDN. Given the urgency, I'm focusing on finding the "Purge All" or "Flush Cache" button within the hPanel to quickly force a refresh. If that fails, I'll switch to methods for cache-busting on a per-file basis, such as the unique query string. I'm actively looking for the simplest and quickest solution.
+
+Focusing on Performance Solutions
+
+I'm now zeroing in on resolving this caching problem. The time constraint makes a fast resolution critical, which leads me to the most efficient solutions first. I'll test the quickest method, then explore more permanent fixes. I'm prioritizing direct purging and per-file cache busting. I need to get this integration working quickly!
+
+I'm now prioritizing the most direct route: purging the Hostinger CDN. Given the urgency, I'm focusing on finding the "Purge All" or "Flush Cache" button within the hPanel to quickly force a refresh. If that fails, I'll switch to methods for cache-busting on a per-file basis, such as the unique query string. I'm actively looking for the simplest and quickest solution.
+
+Focusing on Performance Solutions
+
+I've now zeroing in on resolving this caching problem. The time constraint makes a fast resolution critical, which leads me to the most efficient solutions first. I'll test the quickest method, then explore more permanent fixes. I'm prioritizing direct purging and per-file cache busting. I need to get this integration working quickly!
+
+Of course. The most direct way to solve this is to force-purge Hostinger's CDN cache for your entire site. This will make the CDN re-check your server for all files, including the new ones.
+
+The issue you're facing is likely due to negative caching, where the CDN caches the 404 Not Found response for your new files. When you first tried to access them, they didn't exist in the cache, the CDN checked your server, got a "nope," and then saved that "nope" response for a while.
+
+## 1. Immediate Solution: Purge the CDN Cache
+This is the fastest and most likely solution. It tells Hostinger's CDN to forget everything it has saved for your site and fetch fresh copies.
+
+Log in to your Hostinger hPanel.
+
+Navigate to the Performance section in the sidebar.
+
+Click on CDN.
+
+You should see a button labeled Purge All or Flush Cache. Click it.
+
+Wait a few minutes for the purge to propagate across the CDN network. Then, try accessing your new webhook.php file again.
+
+This single step resolves the problem for most users.
+
+## 2. Workaround: Use a Query String (Cache-Busting)
+If purging the cache is slow or doesn't work, you can trick the CDN into thinking it's a completely new URL by adding a meaningless query string to the end. The CDN will see a new URL, bypass its cache, and request the file from your server.
+
+Update your Google Apps Script to call the webhook URL like this:
+
+https://dashboard.giftedworld.org/webhook.php?v=1
+
+Or, even better, use a timestamp to guarantee it's always unique:
+
+https://dashboard.giftedworld.org/webhook.php?t= + new Date().getTime();
+
+Your PHP script at webhook.php will simply ignore the extra ?t=... part, but for the CDN, it's a brand new link that it has to fetch from the source.
+
+## 3. Long-Term Fix: Disable Cache for Webhooks
+Webhooks, by nature, should never be cached. You want them to execute in real-time every time they are called. You can instruct browsers and CDNs not to cache specific files by adding rules to your .htaccess file.
+
+Add the following code to the top of your .htaccess file in the dashboard.giftedworld.org directory:
+
+Apache
+
+# Do not cache webhook files
+<FilesMatch "^(webhook\.php|form_webhook_2025\.php)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</FilesMatch>
+What this does:
+
+FilesMatch: This targets only your specific webhook files.
+
+Cache-Control: The modern, primary instruction telling all caches (CDN, browser, etc.) not to store this file at all.
+
+Pragma & Expires: These are legacy headers for older systems, providing backward compatibility.
+
+After adding this, you may still need to do one final cache purge (Step 1) to make the CDN aware of the new .htaccess rule. From then on, it should never cache those files again.y
+

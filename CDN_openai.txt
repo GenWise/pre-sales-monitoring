@@ -1,0 +1,85 @@
+
+Short diagnosis (one line): Hostinger’s CDN has likely cached the 404 for those new URLs at the edge, so the edge keeps returning 404 even though the files exist on origin. That’s a known CDN behavior — purge/dev-mode is required to force fresh pulls. 
+Hostinger
++1
+
+Below: immediate today workarounds (fast → fastest), then permanent fixes & diagnostic steps.
+
+Immediate (do now) — zero DNS changes
+
+Fastest, reliable: route the webhook through an existing working PHP file (POSTs generally bypass CDN cache and are forwarded to origin).
+
+Edit an already-working file you control (e.g. leads.php) and add a tiny dispatcher that validates a secret and 
+includes/executes your webhook.php on the origin. Because the request is a POST, CDNs normally pass it to origin 
+rather than serve a stale cached GET/404. Stack Overflow +1
+
+// paste into leads.php (near top). Use a strong secret; keep it private.
+if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_GET['x']) && hash_equals($_GET['x'], 'PUT_A_LONG_SECRET_HERE')) {
+    // normalize so included script sees expected content
+    $_SERVER['REQUEST_URI'] = '/webhook.php';
+    $raw = file_get_contents('php://input');
+    $ct  = $_SERVER['CONTENT_TYPE'] ?? '';
+    if (stripos($ct,'application/json') !== false) {
+        $_POST = json_decode($raw, true) ?? [];
+    } elseif (stripos($ct,'application/x-www-form-urlencoded') !== false) {
+        parse_str($raw, $_POST);
+    }
+    // run webhook logic from file on origin
+    include __DIR__.'/webhook.php';
+    exit;
+}
+Point Google Apps Script to https://dashboard.giftedworld.org/leads.php?x=PUT_A_LONG_SECRET_HERE.
+
+Why this works: POST often gets forwarded to origin (no edge-GET cache) so your include executes on the server and reads the real webhook.php file. 
+Tencent Cloud
++1
+
+If you can’t edit leads.php: modify an other working file (health.php) the same way, or add a small handler already present on the site.
+
+Immediate (hPanel actions — if you can log in)
+
+Purge Hostinger CDN cache (specific URL or full purge) — hPanel → Websites → Manage → Cache Manager / CDN → Purge (specific URL or Purge all). Hostinger also has a “Development mode” you can enable to bypass CDN for quick testing. This forces edges to re-pull origin copies. 
+Hostinger
++1
+
+If you use Cloudflare in front of Hostinger: login to Cloudflare and Purge cache or create a cache rule to Bypass the webhook path (e.g. dashboard.giftedworld.org/webhook*) so that that URL is not cached. Cloudflare/CND rules allow Cache-Level = Bypass. 
+Hostinger
++1
+
+Quick headers & .htaccess tweaks (helpful)
+
+Add response headers at the top of webhook code (or via .htaccess) to prevent caching while testing:
+
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Expires: 0');
+Diagnostics (if above fail)
+
+Check Access logs and error logs in hPanel → Analytics / Access logs and .logs folder to confirm whether requests from Google/App Script or CDN edge are reaching origin and what status code origin returns. Collect timestamps & sample request lines for Hostinger support. 
+Hostinger
++1
+
+If edges are returning 404 without contacting origin, Hostinger support will need the edge cache flushed (give them the filenames, timestamps, and server listing). Customer support can flush edge caches for you.
+
+If you want a fast external production fallback (minutes)
+
+Pipedream — create a webhook URL in minutes and forward to your origin later, or handle the webhook there (no Hostinger caching issues). Great for immediate production/inspecting events. 
+Pipedream
++1
+
+Vercel / Cloud Run / Cloud Functions — quick to deploy a small serverless webhook if you prefer managing code yourself. 
+Vercel
++1
+
+Priority checklist (what I’d do in order)
+
+Add the dispatcher to leads.php and point GAS to it (fastest, low-risk). (Code above.)
+
+In hPanel: Purge CDN specific URL or enable Development Mode. Confirm access logs show requests. 
+Hostinger
++1
+
+If Cloudflare is used, create a Cache Rule to bypass webhook path or purge Cloudflare cache. 
+Cloudflare Docs
++1
+
+If still flaky, open Hostinger support ticket with file list + SSH ls -l output + timestamps + sample request lines from access log.

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-Sales Monitoring Dashboard | GiftedWorld</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1><i class="fas fa-chart-line"></i> Pre-Sales Dashboard</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-primary" id="exportBtn">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Loading Spinner -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Loading dashboard data...</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Lead Overview Section -->
+        <section class="overview-section">
+            <h2 class="section-title">Lead Overview</h2>
+            <div class="overview-grid">
+                <div class="metric-card total-leads">
+                    <div class="metric-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3 id="totalLeads">-</h3>
+                        <p>Total Leads</p>
+                        <span class="metric-change" id="totalLeadsChange">-</span>
+                    </div>
+                </div>
+
+                <div class="metric-card new-leads">
+                    <div class="metric-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3 id="newLeadsToday">-</h3>
+                        <p>New Today</p>
+                        <span class="metric-subtext" id="newLeadsWeek">- this week</span>
+                    </div>
+                </div>
+
+                <div class="metric-card conversion-rate">
+                    <div class="metric-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3 id="conversionRate">-</h3>
+                        <p>Conversion Rate</p>
+                        <span class="metric-change positive" id="conversionChange">-</span>
+                    </div>
+                </div>
+
+                <div class="metric-card response-time">
+                    <div class="metric-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="metric-content">
+                        <h3 id="avgResponseTime">-</h3>
+                        <p>Avg Response Time</p>
+                        <span class="metric-subtext">in hours</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Lead Status Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Lead Sources</h3>
+                    <div class="chart-container">
+                        <canvas id="sourceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card wide">
+                    <h3>Daily Lead Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lead Table Section -->
+        <section class="table-section">
+            <div class="table-header">
+                <h2 class="section-title">Lead Management</h2>
+                <div class="table-controls">
+                    <div class="search-container">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search leads...">
+                    </div>
+                    <div class="filter-container">
+                        <select id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="New">New</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Qualified">Qualified</option>
+                            <option value="Converted">Converted</option>
+                            <option value="Lost">Lost</option>
+                        </select>
+                        <select id="sourceFilter">
+                            <option value="">All Sources</option>
+                            <option value="returning_students">Form 1</option>
+                            <option value="ats_qualifiers">Form 2</option>
+                            <option value="website">Form 3</option>
+                            <option value="early_bird">Form 4</option>
+                        </select>
+                        <input type="date" id="dateFilter">
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="leads-table" id="leadsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th class="sortable" data-sort="name">Name <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="email">Email <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="mobile">Mobile <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="status">Status <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="source">Source <i class="fas fa-sort"></i></th>
+                            <th class="sortable" data-sort="date">Date <i class="fas fa-sort"></i></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTableBody">
+                        <!-- Table rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="btn btn-outline" id="prevPage" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div class="page-info">
+                    <span id="pageInfo">Page 1 of 1</span>
+                </div>
+                <button class="btn btn-outline" id="nextPage" disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Action Center -->
+        <section class="action-center" id="actionCenter" style="display: none;">
+            <div class="action-header">
+                <h3><span id="selectedCount">0</span> leads selected</h3>
+                <button class="btn btn-text" id="clearSelection">Clear Selection</button>
+            </div>
+            <div class="bulk-actions">
+                <button class="btn btn-primary" id="bulkCall">
+                    <i class="fas fa-phone"></i> Call Selected
+                </button>
+                <button class="btn btn-primary" id="bulkEmail">
+                    <i class="fas fa-envelope"></i> Email Selected
+                </button>
+                <select id="bulkStatusUpdate">
+                    <option value="">Update Status...</option>
+                    <option value="Contacted">Mark as Contacted</option>
+                    <option value="Qualified">Mark as Qualified</option>
+                    <option value="Converted">Mark as Converted</option>
+                    <option value="Lost">Mark as Lost</option>
+                </select>
+                <button class="btn btn-secondary" id="bulkExport">
+                    <i class="fas fa-download"></i> Export Selected
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Lead Detail Modal -->
+    <div class="modal" id="leadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Lead Details</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Lead details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                <button class="btn btn-primary" id="modalSave">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <!-- Use proxy API to avoid 403 errors -->
+    <script src="js/api-proxy.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

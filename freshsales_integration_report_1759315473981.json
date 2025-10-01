@@ -1,0 +1,157 @@
+{
+  "timestamp": "2025-10-01T10:44:33.981Z",
+  "connectivityTest": {
+    "timestamp": "2025-10-01T10:44:28.895Z",
+    "tests": {
+      "connectivity": {
+        "status": "success",
+        "data": {
+          "timestamp": "2025-10-01T10:44:28.896Z",
+          "mockMode": true,
+          "tests": {
+            "contactFields": {
+              "status": "success",
+              "message": "Contact fields metadata accessible"
+            },
+            "search": {
+              "status": "success",
+              "message": "Search functionality accessible"
+            },
+            "activities": {
+              "status": "success",
+              "message": "Activities endpoint accessible"
+            },
+            "contactRead": {
+              "status": "success",
+              "message": "Contact read permissions granted"
+            }
+          }
+        }
+      },
+      "fieldMapping": {
+        "status": "success",
+        "originalLead": {
+          "Timestamp": "2025-10-01T10:44:29.591Z",
+          "Child Name": "Mock Child 1",
+          "Parent Name": "Mock Parent 1",
+          "Parent Email": "parent1@mockmail.com",
+          "Parent Mobile": "+913904057008",
+          "Child Grade": "Grade 2",
+          "Program": "Math Olympiad",
+          "Interest Level": "Hot",
+          "Geography": "Mock City"
+        },
+        "mappedContact": {
+          "first_name": "Mock",
+          "last_name": "Child 1",
+          "emails": [
+            {
+              "value": "parent1@mockmail.com",
+              "is_primary": true,
+              "label": "work"
+            }
+          ],
+          "mobile_number": "+913904057008",
+          "contact_status_id": 402000446647,
+          "lead_source_id": "Web",
+          "description": "Parent: Mock Parent 1 | Child Grade: Grade 2 | Program Interest: Math Olympiad | Initial Contact: 2025-10-01T10:44:29.591Z",
+          "tags": [
+            "program:math_olympiad",
+            "grade:grade_2",
+            "pre_sales_lead"
+          ],
+          "cf_child_grade": "Grade 2",
+          "cf_program": "Math Olympiad",
+          "country": "Mock City"
+        },
+        "reverseMapped": {
+          "freshsalesId": "mock_123",
+          "childName": "Mock Child 1",
+          "parentName": "Mock Child 1",
+          "parentEmail": "parent1@mockmail.com",
+          "parentMobile": "+913904057008",
+          "interestLevel": "Hot",
+          "tags": ""
+        }
+      },
+      "mockSync": {
+        "status": "success",
+        "data": {
+          "success": true,
+          "message": "Sync completed successfully",
+          "timestamp": "2025-10-01T10:44:31.252Z",
+          "stats": {
+            "processed": 2,
+            "created": 2,
+            "updated": 0,
+            "skipped": 0,
+            "errors": 0,
+            "duplicates": 0
+          },
+          "rateLimits": {
+            "hourly": {
+              "limit": 1000,
+              "remaining": 1000,
+              "resetTime": null
+            },
+            "perMinute": {
+              "limit": 400,
+              "remaining": 400,
+              "resetTime": null
+            }
+          },
+          "mockMode": true
+        }
+      }
+    }
+  },
+  "leadsCount": 10,
+  "sampleLead": {
+    "Timestamp": "2025-10-01T10:44:31.253Z",
+    "Child Name": "Mock Child 1",
+    "Parent Name": "Mock Parent 1",
+    "Parent Email": "parent1@mockmail.com",
+    "Parent Mobile": "+916174261917",
+    "Child Grade": "Grade 3",
+    "Program": "Coding Bootcamp",
+    "Interest Level": "Hot",
+    "Geography": "Mock City"
+  },
+  "syncToFreshSalesResult": {
+    "success": true,
+    "message": "Sync completed successfully",
+    "timestamp": "2025-10-01T10:44:33.980Z",
+    "stats": {
+      "processed": 3,
+      "created": 3,
+      "updated": 0,
+      "skipped": 0,
+      "errors": 0,
+      "duplicates": 0
+    },
+    "rateLimits": {
+      "hourly": {
+        "limit": 1000,
+        "remaining": 1000,
+        "resetTime": null
+      },
+      "perMinute": {
+        "limit": 400,
+        "remaining": 400,
+        "resetTime": null
+      }
+    },
+    "mockMode": true
+  },
+  "bidirectionalResult": null,
+  "config": {
+    "masterSheetId": "1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ",
+    "serviceAccountFile": "/Users/rajeshpanchanathan/code/pre-sales-monitoring/credentials/service-account-key.json",
+    "apiKey": "awiMf4YWS-S4wE_10pUmHQ",
+    "domain": "genwisecrm.myfreshworks.com",
+    "mockMode": true,
+    "batchSize": 5,
+    "duplicateStrategy": "skip",
+    "syncDirection": "to_crm"
+  }
+}

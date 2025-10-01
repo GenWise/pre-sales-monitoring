@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Fix Test</title>
+</head>
+<body>
+    <h1>Dashboard JavaScript Fix Test</h1>
+    <div id="test-results"></div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Test script to validate the fixes
+        document.addEventListener('DOMContentLoaded', () => {
+            const results = document.getElementById('test-results');
+            let testResults = [];
+
+            // Test 1: Check if LeadsAPI instance is created
+            if (window.LeadsAPI) {
+                testResults.push('✅ LeadsAPI instance created successfully');
+            } else {
+                testResults.push('❌ LeadsAPI instance not found');
+            }
+
+            // Test 2: Check if getAllLeads method exists
+            if (window.LeadsAPI && typeof window.LeadsAPI.getAllLeads === 'function') {
+                testResults.push('✅ getAllLeads method exists');
+            } else {
+                testResults.push('❌ getAllLeads method not found');
+            }
+
+            // Test 3: Check if getStatus method exists
+            if (window.LeadsAPI && typeof window.LeadsAPI.getStatus === 'function') {
+                testResults.push('✅ getStatus method exists');
+            } else {
+                testResults.push('❌ getStatus method not found');
+            }
+
+            // Test 4: Check if updateLead method exists
+            if (window.LeadsAPI && typeof window.LeadsAPI.updateLead === 'function') {
+                testResults.push('✅ updateLead method exists');
+            } else {
+                testResults.push('❌ updateLead method not found');
+            }
+
+            // Test 5: Try calling getStatus
+            try {
+                const status = window.LeadsAPI.getStatus();
+                if (status && typeof status === 'object') {
+                    testResults.push('✅ getStatus() method call successful');
+                } else {
+                    testResults.push('❌ getStatus() returned invalid data');
+                }
+            } catch (error) {
+                testResults.push('❌ getStatus() method call failed: ' + error.message);
+            }
+
+            // Test 6: Try calling getAllLeads (async)
+            window.LeadsAPI.getAllLeads().then(leads => {
+                if (Array.isArray(leads)) {
+                    testResults.push('✅ getAllLeads() method call successful - returned ' + leads.length + ' leads');
+                } else {
+                    testResults.push('❌ getAllLeads() returned invalid data');
+                }
+                displayResults();
+            }).catch(error => {
+                testResults.push('❌ getAllLeads() method call failed: ' + error.message);
+                displayResults();
+            });
+
+            function displayResults() {
+                results.innerHTML = '<h2>Test Results:</h2>' +
+                    testResults.map(result => '<p>' + result + '</p>').join('');
+            }
+
+            // Display initial results (sync tests)
+            setTimeout(displayResults, 100);
+        });
+    </script>
+</body>
+</html>
