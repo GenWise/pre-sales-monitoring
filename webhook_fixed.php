@@ -85,6 +85,15 @@ try {
         'success' => true,
         'message' => 'Data successfully added to Google Sheets',
         'data' => $data,
+        'extracted_data' => [
+            'childName' => $childName,
+            'parentName' => $parentName,
+            'parentEmail' => $parentEmail,
+            'parentMobile' => $parentMobile,
+            'interestLevel' => $interestLevel,
+            'sourceTag' => $sourceTag,
+            'timestamp' => $timestamp
+        ],
         'row_data' => $rowData,
         'sheets_response' => $result,
         'timestamp' => date('c')

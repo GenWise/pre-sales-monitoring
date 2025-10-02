@@ -173,6 +173,11 @@ class PreSalesDashboard {
                 this.hideModal();
             }
         });
+
+        // Assignment guide toggle
+        document.getElementById('toggleGuide').addEventListener('click', () => {
+            this.toggleAssignmentGuide();
+        });
     }
 
     renderCaseManagement() {
@@ -1024,6 +1029,21 @@ class PreSalesDashboard {
             this.showToast('Failed to refresh data', 'error');
         } finally {
             this.hideLoading();
+        }
+    }
+
+    toggleAssignmentGuide() {
+        const guideContent = document.getElementById('guideContent');
+        const toggleBtn = document.getElementById('toggleGuide');
+
+        if (guideContent.classList.contains('collapsed')) {
+            guideContent.classList.remove('collapsed');
+            guideContent.style.maxHeight = guideContent.scrollHeight + 'px';
+            toggleBtn.classList.remove('collapsed');
+        } else {
+            guideContent.classList.add('collapsed');
+            guideContent.style.maxHeight = '0px';
+            toggleBtn.classList.add('collapsed');
         }
     }
 }

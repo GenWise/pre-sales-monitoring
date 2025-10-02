@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Assignment Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        button:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        select, input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 0 5px;
+        }
+        .results {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Assignment Backend Testing Dashboard</h1>
+        <p>This page tests the lead assignment and note editing functionality that writes back to the master sheet.</p>
+
+        <div class="test-section">
+            <h3>🔧 Status Updates</h3>
+            <div class="test-buttons">
+                <button class="btn-primary" onclick="testStatusUpdate('New Parent')">New Parent</button>
+                <button class="btn-warning" onclick="testStatusUpdate('Contacted')">Contacted</button>
+                <button class="btn-primary" onclick="testStatusUpdate('Follow-up')">Follow-up</button>
+                <button class="btn-success" onclick="testStatusUpdate('Enrolled')">Enrolled</button>
+                <button class="btn-danger" onclick="testStatusUpdate('Not Interested')">Not Interested</button>
+            </div>
+            <div class="results">
+                <div id="statusResult"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>👤 Assignment Tests</h3>
+            <div class="test-buttons">
+                <button class="btn-primary" onclick="testAssignment('Unassigned')">Unassigned</button>
+                <button class="btn-success" onclick="testAssignment('Rajesh')">Assign to Rajesh</button>
+                <button class="btn-warning" onclick="testAssignment('Team Member')">Assign to Team Member</button>
+            </div>
+            <div class="results">
+                <div id="assignmentResult"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Notes Testing</h3>
+            <div>
+                <input type="text" id="noteInput" placeholder="Enter a test note..." style="width: 300px;">
+                <button class="btn-primary" onclick="testNotesAddition()">Add Note</button>
+            </div>
+            <div class="results">
+                <div id="notesResult"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 Multiple Field Updates</h3>
+            <div style="margin-bottom: 10px;">
+                Row: <input type="number" id="multiRowNumber" value="2" min="2" style="width: 60px;">
+                Status: <select id="multiStatus">
+                    <option value="">Keep current</option>
+                    <option value="New Parent">New Parent</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Enrolled">Enrolled</option>
+                    <option value="Not Interested">Not Interested</option>
+                </select>
+                Owner: <select id="multiOwner">
+                    <option value="">Keep current</option>
+                    <option value="Unassigned">Unassigned</option>
+                    <option value="Rajesh">Rajesh</option>
+                    <option value="Team Member">Team Member</option>
+                </select>
+                Interest: <select id="multiInterest">
+                    <option value="">Keep current</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            <div>
+                <input type="text" id="multiNote" placeholder="Add a note (optional)" style="width: 300px;">
+                <button class="btn-success" onclick="testMultipleFields()">Update Multiple Fields</button>
+            </div>
+            <div class="results">
+                <div id="multiResult"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test Log</h3>
+            <button class="btn-warning" onclick="clearLog()">Clear Log</button>
+            <button class="btn-primary" onclick="checkMasterSheet()">Check Master Sheet</button>
+            <div id="testLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let testRowNumber = 2; // Default test row
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('testLog');
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="status ${type}">${timestamp}</span> ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = '';
+        }
+
+        async function makeUpdateRequest(updates) {
+            try {
+                log(`Making request to update row ${testRowNumber} with: ${JSON.stringify(updates)}`);
+
+                const response = await fetch(`${API_BASE}/update_lead.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        row_number: testRowNumber,
+                        ...updates
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    log(`✅ SUCCESS: ${result.message} (${result.updated_cells} cells updated)`, 'success');
+                    return result;
+                } else {
+                    log(`❌ ERROR: ${result.error}`, 'error');
+                    return null;
+                }
+            } catch (error) {
+                log(`❌ NETWORK ERROR: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        function showResult(elementId, success, message) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="status ${success ? 'success' : 'error'}">${message}</div>`;
+        }
+
+        async function testStatusUpdate(status) {
+            log(`Testing status update to: ${status}`);
+            const result = await makeUpdateRequest({ status: status });
+            showResult('statusResult', !!result,
+                result ? `Status updated to "${status}" successfully!` : 'Status update failed');
+        }
+
+        async function testAssignment(owner) {
+            log(`Testing assignment to: ${owner}`);
+            const result = await makeUpdateRequest({ assigned_owner: owner });
+            showResult('assignmentResult', !!result,
+                result ? `Lead assigned to "${owner}" successfully!` : 'Assignment failed');
+        }
+
+        async function testNotesAddition() {
+            const noteText = document.getElementById('noteInput').value;
+            if (!noteText.trim()) {
+                showResult('notesResult', false, 'Please enter a note to test');
+                return;
+            }
+
+            log(`Testing notes addition: "${noteText}"`);
+            const result = await makeUpdateRequest({ notes: noteText });
+            showResult('notesResult', !!result,
+                result ? `Note "${noteText}" added successfully!` : 'Note addition failed');
+
+            if (result) {
+                document.getElementById('noteInput').value = '';
+            }
+        }
+
+        async function testMultipleFields() {
+            const rowNumber = parseInt(document.getElementById('multiRowNumber').value);
+            const status = document.getElementById('multiStatus').value;
+            const owner = document.getElementById('multiOwner').value;
+            const interest = document.getElementById('multiInterest').value;
+            const note = document.getElementById('multiNote').value;
+
+            const updates = {};
+            if (status) updates.status = status;
+            if (owner) updates.assigned_owner = owner;
+            if (interest) updates.interest_level = interest;
+            if (note) updates.notes = note;
+
+            if (Object.keys(updates).length === 0) {
+                showResult('multiResult', false, 'Please select at least one field to update');
+                return;
+            }
+
+            const originalRow = testRowNumber;
+            testRowNumber = rowNumber;
+
+            log(`Testing multiple fields update on row ${rowNumber}`);
+            const result = await makeUpdateRequest(updates);
+
+            testRowNumber = originalRow; // Reset
+
+            showResult('multiResult', !!result,
+                result ? `Multiple fields updated successfully on row ${rowNumber}!` : 'Multiple fields update failed');
+        }
+
+        async function checkMasterSheet() {
+            try {
+                log('Fetching current master sheet data...');
+                const response = await fetch(`${API_BASE}/leads_service_account.php`);
+                const data = await response.json();
+
+                if (data.success && data.leads.length > 0) {
+                    const testLead = data.leads[0]; // First lead (row 2)
+                    log(`📊 Current test lead data: Status="${testLead.status}", Owner="${testLead.assigned_to}", Notes="${testLead.notes ? testLead.notes.substring(0, 50) + '...' : 'None'}"`, 'info');
+                } else {
+                    log('❌ Failed to fetch master sheet data', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error checking master sheet: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🎯 Assignment Backend Testing Dashboard loaded');
+            log('Ready to test lead assignment and note editing functionality');
+            checkMasterSheet();
+        });
+    </script>
+</body>
+</html>

@@ -13,7 +13,7 @@
 // =============================================================================
 
 const FORM_SOURCE_TAG = 'early_bird';
-const WEBHOOK_URL = 'https://dashboard.giftedworld.org/webhook'; // Update if needed
+const WEBHOOK_URL = 'https://dashboard.giftedworld.org/webhook.php';
 const MASTER_SHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ';
 
 // Dropdown values from master sheet (MUST MATCH EXACTLY)

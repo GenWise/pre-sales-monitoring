@@ -45,19 +45,21 @@ try {
     // Extract form data
     $formData = $data['formData'] ?? [];
 
-    // Map form fields to master sheet columns
+    // CRITICAL: Map form fields to master sheet columns in EXACT order:
+    // Child Name, Parent Name, Parent Email, Parent Mobile, Interest Level,
+    // Source Tag, Timestamp, Duplicate Flag, Status, Assigned Owner, Notes
     $rowData = [
-        $formData['Child Name'] ?? $formData['childName'] ?? '',
-        $formData['Parent Name'] ?? $formData['parentName'] ?? '',
-        $formData['Parent Email'] ?? $formData['parentEmail'] ?? '',
-        $formData['Parent Mobile'] ?? $formData['parentMobile'] ?? '',
-        $formData['Interest Level'] ?? $formData['interestLevel'] ?? 'Medium',
-        $formData['sourceTag'] ?? $formData['Source Tag'] ?? '',
-        date('c'), // Current timestamp
-        'No', // Duplicate flag (would need to check)
-        'New Parent', // Status
-        '', // Assigned Owner
-        'Added via webhook ' . date('Y-m-d H:i:s') // Notes
+        $formData['Child Name'] ?? $formData['childName'] ?? '',              // Child Name
+        $formData['Parent Name'] ?? $formData['parentName'] ?? '',            // Parent Name
+        $formData['Parent Email'] ?? $formData['parentEmail'] ?? '',          // Parent Email
+        $formData['Parent Mobile'] ?? $formData['parentMobile'] ?? '',        // Parent Mobile
+        $formData['Interest Level'] ?? $formData['interestLevel'] ?? 'Medium', // Interest Level
+        $formData['sourceTag'] ?? $formData['Source Tag'] ?? '',              // Source Tag
+        date('n/j/Y G:i:s'),                                                  // Timestamp (MM/d/YYYY format)
+        'No',                                                                 // Duplicate Flag
+        'New Parent',                                                         // Status
+        '',                                                                   // Assigned Owner
+        'Added via webhook ' . date('Y-m-d H:i:s')                          // Notes
     ];
 
     // Append row to spreadsheet

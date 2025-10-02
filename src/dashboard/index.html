@@ -75,6 +75,46 @@
             </div>
         </section>
 
+        <!-- Assignment Guide -->
+        <section class="assignment-guide" id="assignmentGuide">
+            <div class="guide-header">
+                <h3><i class="fas fa-info-circle"></i> How to Assign & Update Leads</h3>
+                <button class="btn btn-text" id="toggleGuide"><i class="fas fa-chevron-down"></i></button>
+            </div>
+            <div class="guide-content" id="guideContent">
+                <div class="guide-grid">
+                    <div class="guide-item">
+                        <div class="guide-icon status-icon"><i class="fas fa-tasks"></i></div>
+                        <div class="guide-text">
+                            <h4>Change Status</h4>
+                            <p>Click the edit button (👁️) next to any lead, or use the status button (📝) for quick updates</p>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon assign-icon"><i class="fas fa-user-plus"></i></div>
+                        <div class="guide-text">
+                            <h4>Assign Owner</h4>
+                            <p>Click the ➕ button next to "Unassigned" leads, or use bulk assign for multiple leads</p>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon bulk-icon"><i class="fas fa-check-square"></i></div>
+                        <div class="guide-text">
+                            <h4>Bulk Actions</h4>
+                            <p>Select multiple leads using checkboxes, then use the bulk action menu that appears</p>
+                        </div>
+                    </div>
+                    <div class="guide-item">
+                        <div class="guide-icon notes-icon"><i class="fas fa-sticky-note"></i></div>
+                        <div class="guide-text">
+                            <h4>Add Notes</h4>
+                            <p>Click the edit button (👁️) to open the lead details and add notes or schedule follow-ups</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Lead Table Section -->
         <section class="table-section">
             <div class="table-header">
@@ -129,7 +169,7 @@
                             <th class="sortable" data-sort="interestLevel">Priority <i class="fas fa-sort"></i></th>
                             <th class="sortable" data-sort="source">Source <i class="fas fa-sort"></i></th>
                             <th class="sortable" data-sort="date">Date <i class="fas fa-sort"></i></th>
-                            <th>Quick Actions</th>
+                            <th>Assignment & Actions</th>
                         </tr>
                     </thead>
                     <tbody id="leadsTableBody">
@@ -149,6 +189,34 @@
                 <button class="btn btn-outline" id="nextPage" disabled>
                     Next <i class="fas fa-chevron-right"></i>
                 </button>
+            </div>
+        </section>
+
+        <!-- Charts Section - Placed AFTER data table as requested -->
+        <section class="charts-section">
+            <h2 class="section-title">Analytics Dashboard</h2>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Lead Status Distribution</h3>
+                    <div class="chart-container" id="statusChart">
+                        <!-- Chart will be rendered here -->
+                        <p style="text-align: center; color: #666; margin-top: 50px;">Chart will be displayed here</p>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Lead Sources</h3>
+                    <div class="chart-container" id="sourceChart">
+                        <!-- Chart will be rendered here -->
+                        <p style="text-align: center; color: #666; margin-top: 50px;">Chart will be displayed here</p>
+                    </div>
+                </div>
+                <div class="chart-card wide">
+                    <h3>Lead Trends Over Time</h3>
+                    <div class="chart-container" id="trendsChart">
+                        <!-- Chart will be rendered here -->
+                        <p style="text-align: center; color: #666; margin-top: 50px;">Chart will be displayed here</p>
+                    </div>
+                </div>
             </div>
         </section>
 

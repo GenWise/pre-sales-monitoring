@@ -1,10 +1,10 @@
 // Dashboard API using backend proxy (avoids 403 errors)
 class LeadsAPIProxy {
     constructor() {
-        // Use the proxy API endpoint
+        // Use the working production API endpoints
         this.API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3002'
-            : 'https://dashboard.giftedworld.org/api-proxy';
+            : 'https://giftedworld.org';
 
         // Cache settings
         this.cache = new Map();
@@ -25,7 +25,7 @@ class LeadsAPIProxy {
 
         try {
             console.log('Fetching leads from proxy API...');
-            const response = await fetch(`${this.API_URL}/api/leads`, {
+            const response = await fetch(`${this.API_URL}/leads.php`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -190,7 +190,7 @@ class LeadsAPIProxy {
      */
     async testConnection() {
         try {
-            const response = await fetch(`${this.API_URL}/health`);
+            const response = await fetch(`${this.API_URL}/health.php`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -266,16 +266,119 @@ class LeadsAPIProxy {
     }
 
     /**
-     * Update a lead (placeholder for future implementation)
-     * @param {string} leadId - Lead ID
+     * Update a lead in the master sheet
+     * @param {string} leadId - Lead ID (contains row number)
      * @param {Object} updates - Lead updates
-     * @returns {Promise<boolean>} Success status
+     * @returns {Promise<Object>} Update result
      */
     async updateLead(leadId, updates) {
-        console.warn('Lead update not implemented in proxy API yet');
-        // Clear cache to force refresh
-        this.cache.clear();
-        return true;
+        try {
+            // Extract row number from lead ID (format: lead_123)
+            const rowNumber = parseInt(leadId.replace('lead_', '')) + 1; // Convert to 1-based indexing
+
+            if (!rowNumber || rowNumber < 2) {
+                throw new Error('Invalid lead ID or row number');
+            }
+
+            console.log(`Updating lead ${leadId} (row ${rowNumber}) with:`, updates);
+
+            // Map dashboard field names to master sheet column names
+            const fieldMapping = {
+                'assignedOwner': 'assigned_owner',
+                'interestLevel': 'interest_level',
+                'notes': 'notes',
+                'status': 'status'
+            };
+
+            const mappedUpdates = {};
+            Object.keys(updates).forEach(key => {
+                const mappedKey = fieldMapping[key] || key;
+                mappedUpdates[mappedKey] = updates[key];
+            });
+
+            const requestBody = {
+                row_number: rowNumber,
+                ...mappedUpdates
+            };
+
+            const response = await fetch(`${this.API_URL}/update_lead.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody),
+                mode: 'cors'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to update lead');
+            }
+
+            console.log('Lead updated successfully:', result);
+
+            // Clear cache to force refresh of data
+            this.cache.clear();
+
+            return {
+                success: true,
+                message: result.message,
+                updatedCells: result.updated_cells,
+                timestamp: result.timestamp
+            };
+
+        } catch (error) {
+            console.error('Error updating lead:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Update lead status
+     * @param {string} leadId - Lead ID
+     * @param {string} status - New status
+     * @returns {Promise<Object>} Update result
+     */
+    async updateLeadStatus(leadId, status) {
+        return this.updateLead(leadId, { status: status });
+    }
+
+    /**
+     * Assign lead to owner
+     * @param {string} leadId - Lead ID
+     * @param {string} owner - Assigned owner
+     * @returns {Promise<Object>} Update result
+     */
+    async assignLead(leadId, owner) {
+        return this.updateLead(leadId, { assigned_owner: owner });
+    }
+
+    /**
+     * Add notes to lead
+     * @param {string} leadId - Lead ID
+     * @param {string} notes - Notes to add
+     * @returns {Promise<Object>} Update result
+     */
+    async addLeadNotes(leadId, notes) {
+        return this.updateLead(leadId, { notes: notes });
+    }
+
+    /**
+     * Update lead interest level
+     * @param {string} leadId - Lead ID
+     * @param {string} interest - Interest level
+     * @returns {Promise<Object>} Update result
+     */
+    async updateLeadInterest(leadId, interest) {
+        return this.updateLead(leadId, { interest_level: interest });
     }
 }
 

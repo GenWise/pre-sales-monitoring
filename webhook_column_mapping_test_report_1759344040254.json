@@ -1,0 +1,146 @@
+{
+  "timestamp": "2025-10-01T18:40:40.254Z",
+  "summary": {
+    "passed": 0,
+    "failed": 5,
+    "total": 5,
+    "successRate": "0.0%"
+  },
+  "tests": [
+    {
+      "testName": "Basic Form Submission",
+      "success": true,
+      "payload": {
+        "formData": {
+          "Child Name": "Test Child Column Mapping",
+          "Parent Name": "Test Parent Column Mapping",
+          "Parent Email": "column.test@mapping.com",
+          "Parent Mobile": "9876543210",
+          "interestLevel": "High",
+          "sourceTag": "returning_students"
+        },
+        "source": "test",
+        "metadata": {
+          "formName": "Column Mapping Test"
+        }
+      },
+      "rowData": {
+        "Child Name": "Test Child Column Mapping",
+        "Parent Name": "Test Parent Column Mapping",
+        "Parent Email": "column.test@mapping.com",
+        "Parent Mobile": "9876543210",
+        "Interest Level": "Medium",
+        "Source Tag": "returning_students",
+        "Timestamp": "2025-10-01T18:40:26.464Z",
+        "Duplicate Flag": "Yes",
+        "Status": "New Parent",
+        "Assigned Owner": "",
+        "Notes": ""
+      },
+      "validation": {
+        "isValid": false,
+        "issues": [
+          "interestLevel -> Interest Level: expected \"High\", got \"Medium\""
+        ]
+      },
+      "timestamp": "2025-10-01T18:40:30.289Z"
+    },
+    {
+      "testName": "Minimal Payload",
+      "success": false,
+      "error": "Request failed with status code 500",
+      "payload": {
+        "formData": {
+          "Child Name": "Minimal Child",
+          "Parent Name": "Minimal Parent",
+          "Parent Email": "minimal@test.com",
+          "sourceTag": "website"
+        },
+        "source": "test",
+        "metadata": {
+          "formName": "Minimal Test"
+        }
+      },
+      "timestamp": "2025-10-01T18:40:32.090Z"
+    },
+    {
+      "testName": "ATS Qualifiers Source",
+      "success": false,
+      "error": "Request failed with status code 500",
+      "payload": {
+        "formData": {
+          "Child Name": "ATS Child",
+          "Parent Name": "ATS Parent",
+          "Parent Email": "ats@test.com",
+          "Parent Mobile": "9999999999",
+          "interestLevel": "Medium",
+          "sourceTag": "ats_qualifiers"
+        },
+        "source": "test",
+        "metadata": {
+          "formName": "ATS Test"
+        }
+      },
+      "timestamp": "2025-10-01T18:40:33.694Z"
+    },
+    {
+      "testName": "Website Source",
+      "success": false,
+      "error": "Request failed with status code 500",
+      "payload": {
+        "formData": {
+          "Child Name": "Website Child",
+          "Parent Name": "Website Parent",
+          "Parent Email": "website@test.com",
+          "Parent Mobile": "8888888888",
+          "interestLevel": "Low",
+          "sourceTag": "website"
+        },
+        "source": "test",
+        "metadata": {
+          "formName": "Website Test"
+        }
+      },
+      "timestamp": "2025-10-01T18:40:35.316Z"
+    },
+    {
+      "testName": "Early Bird Source",
+      "success": true,
+      "payload": {
+        "formData": {
+          "Child Name": "Early Bird Child",
+          "Parent Name": "Early Bird Parent",
+          "Parent Email": "earlybird@test.com",
+          "Parent Mobile": "7777777777",
+          "interestLevel": "High",
+          "sourceTag": "early_bird"
+        },
+        "source": "test",
+        "metadata": {
+          "formName": "Early Bird Test"
+        }
+      },
+      "rowData": {
+        "Child Name": "Early Bird Child",
+        "Parent Name": "Early Bird Parent",
+        "Parent Email": "earlybird@test.com",
+        "Parent Mobile": "",
+        "Interest Level": "Medium",
+        "Source Tag": "early_bird",
+        "Timestamp": "2025-10-01T18:40:36.770Z",
+        "Duplicate Flag": "No",
+        "Status": "New Parent",
+        "Assigned Owner": "",
+        "Notes": ""
+      },
+      "validation": {
+        "isValid": false,
+        "issues": [
+          "Parent Mobile -> Parent Mobile: expected \"7777777777\", got \"\"",
+          "interestLevel -> Interest Level: expected \"High\", got \"Medium\""
+        ]
+      },
+      "timestamp": "2025-10-01T18:40:40.253Z"
+    }
+  ]
+}

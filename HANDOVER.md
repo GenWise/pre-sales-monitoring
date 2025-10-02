@@ -4,15 +4,17 @@
 
 ## 🚨 CRITICAL IMMEDIATE PRIORITIES
 
-### 1. **CDN Cache Blocking Webhook Deployment** (ROOT CAUSE IDENTIFIED)
-- **Issue**: Hostinger CDN returns cached 404s for NEW PHP files (webhook.php, form_webhook_2025.php)
-- **Evidence**: Google Apps Script sends perfect POST but receives GET response from leads.php
-- **External AI Consultation**: Both Gemini + OpenAI confirm CDN negative caching issue
-- **Working Local**: localhost:3001 webhook + service account auth fully functional
-- **Solutions Available**:
-  1. hPanel CDN purge (24-48hr timeline)
-  2. Dispatcher pattern in existing leads.php (immediate)
-  3. Cache-busting query strings
+### 1. **ACTIVE FORM SUBMISSION PIPELINE BROKEN** (NEW CRITICAL ISSUE - Oct 1, 10:30PM)
+- **Evidence**: Response sheet `14Wj7yZSWq6J0Sbkh3yk26c24JCqvfekWJtGxYbjH-pE` shows 10/1/2025 submissions NOT appearing in master sheet
+- **Specific Missing**: Row 114 "Testimonial/Parentonial/test@parent.ing" and others from today
+- **Column Mismatch**: Master sheet columns don't align with response sheet structure
+- **Google Apps Script**: Likely not deployed or triggers not working on the actual form
+- **Impact**: ALL new submissions since today are being lost in response sheet limbo
+
+### 2. **CDN Cache Blocking** (PARTIALLY RESOLVED)
+- **Status**: Dispatcher pattern implemented but still issues with automation
+- **Working Local**: localhost webhook + service account auth functional
+- **Production Issue**: Google Apps Scripts not calling production webhook
 
 ### 2. **FreshSales Integration** (MAJOR MISSING COMPONENT)
 - **Status**: Code exists but not integrated into webhook flow
@@ -78,8 +80,14 @@
 - **"Vibe coder"**: Maximum automation preference
 - **Quality Focus**: Will restart work for better results vs quick fixes
 - **Intolerance for false claims**: Caught premature "success" declarations multiple times
-- **Subagent preference**: Explicitly requested for complex tasks
+- **Subagent preference**: Explicitly requested for complex tasks - "use subagents to keep thread clean"
 - **Direct action**: "Do what's asked, don't ask if you should"
+- **CRITICAL**: Will call out when promises aren't delivered ("Were you listening at all?")
+
+### Key Frustrations This Session
+- **Analytics vs Case Management**: User clearly requested operational workflow, got analytics dashboard
+- **Data Integrity Issues**: Wrong source tags, ignored interest levels from actual form responses
+- **Missing Automation**: Form submissions not flowing automatically to master sheet
 
 ### Technical Standards
 - **First Time Right (FTR)**: Production-quality code required from start
@@ -108,17 +116,22 @@
 ## 🎯 HANDOVER PROMPT
 
 ```
-Continue webhook integration. ROOT CAUSE: Hostinger CDN cache blocks new PHP files with 404s.
+URGENT: Form submission pipeline is broken. New submissions accumulating in response sheet but not reaching master sheet.
 
-VERIFIED: Google Apps Script works perfectly (sends proper POST requests).
-PROBLEM: CDN serves cached 404 for webhook.php, leads.php returns GET response to POST.
-SOLUTIONS: External AI consultation complete - CDN purge or dispatcher pattern needed.
+CRITICAL EVIDENCE: Response sheet 14Wj7yZSWq6J0Sbkh3yk26c24JCqvfekWJtGxYbjH-pE shows 10/1/2025 submissions (row 114 "Testimonial/Parentonial/test@parent.ing" etc) that are MISSING from master sheet.
 
-NEXT: Implement OpenAI's dispatcher pattern in leads.php OR purge CDN cache in hPanel.
-Then integrate FreshSales sync. See CDN_gemini.txt and CDN_openai.txt for solutions.
+ROOT CAUSE: Google Apps Script not deployed/working on the actual form that creates this response sheet.
 
-WHY dashboard.giftedworld.org unfixable: CDN negative caching of 404s.
-ngrok point: Temporary public URL until CDN cache clears (24-48hr).
+IMMEDIATE ACTIONS:
+1. Identify which Google Form creates response sheet 14Wj7yZSWq6J0Sbkh3yk26c24JCqvfekWJtGxYbjH-pE
+2. Deploy corrected website_bound_script.js to that specific form
+3. Verify column mapping between response sheet and master sheet
+4. Process today's backlog of missing submissions
+5. Test end-to-end: form submit → response sheet → master sheet → dashboard
+
+CRITICAL: Every minute delayed = more lost submissions. Form automation is completely broken.
+
+Dashboard: https://dashboard.giftedworld.org (working but showing old data)
 ```
 
 ## 💡 AUTOMATION INSIGHTS & RECOMMENDATIONS
