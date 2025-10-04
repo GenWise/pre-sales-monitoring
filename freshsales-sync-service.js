@@ -14,6 +14,9 @@
  * - Duplicate prevention and handling
  */
 
+// Load environment variables
+require('dotenv').config();
+
 const FreshSalesSync = require('./src/api/freshsalesSync');
 const cron = require('node-cron');
 const fs = require('fs').promises;
@@ -44,7 +47,7 @@ class FreshSalesSyncService {
             environment: process.env.NODE_ENV || 'production',
             batchSize: 10,
             syncInterval: {
-                toFreshSales: '*/5 * * * *', // Every 5 minutes - new leads from sheets
+                toFreshSales: '0 * * * *', // Every hour - new leads from sheets
                 fromFreshSales: '0 */2 * * *', // Every 2 hours - status updates from CRM
                 healthCheck: '0 */6 * * *'    // Every 6 hours - system health
             },

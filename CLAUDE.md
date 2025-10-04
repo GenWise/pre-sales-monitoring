@@ -167,3 +167,20 @@
 - **Column precision**: Exact index mapping across all systems mandatory
 - **File cleanup required**: Remove failed dashboard code
 - **Documentation**: `docs/TIGHT_IMPLEMENTATION_PLAN.md` contains detailed specifications
+
+## Deployment Configuration (Oct 4, 2025)
+- **Server**: DigitalOcean 165.232.134.106 (1GB RAM, Ubuntu 22.04)
+- **PM2 Config**: `ecosystem.config.js` required for env_file loading
+- **SSH Key**: `~/.ssh/macmini_do_droplet` for deployment access
+- **Deploy Script**: `./deploy.sh` (rsync + npm install + PM2 restart)
+- **Service Location**: `/root/pre-sales-monitoring/`
+- **google-spreadsheet**: MUST use v4.x (v5+ uses ESM, incompatible with PM2 CommonJS)
+- **dotenv**: Requires explicit `require('dotenv').config()` at top of service file (PM2 ecosystem env_file alone insufficient)
+
+## Session Learnings (Expire after 30 days)
+
+### Deal contacts_added_list is write-only (Added: 2025-10-04, Expires: 2025-11-03)
+FreshSales API accepts `contacts_added_list` during POST /deals but doesn't return it in GET /deals response. Linkage works in UI and via /contacts/{id}/deals endpoint. Not a bug - field is write-only for deals endpoint.
+
+### google-spreadsheet v5+ ESM incompatibility (Added: 2025-10-04, Expires: 2025-11-03)
+v5.0.2+ uses ESM modules causing "ERR_REQUIRE_ESM" with PM2's CommonJS require() loader. Use v4.1.4 for CommonJS projects. Install with --legacy-peer-deps due to google-auth-library peer dependency conflict.
