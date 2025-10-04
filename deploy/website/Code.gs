@@ -58,16 +58,19 @@ const WEBSITE_CONFIG = {
         'Your Name': MASTER_FIELDS.PARENT_NAME,
         'Full Name': MASTER_FIELDS.PARENT_NAME,
 
-        // Email variations
+        // Email variations - ACTUAL FORM FIELD
+        'Parent Email Id': MASTER_FIELDS.PARENT_EMAIL,
         'Email': MASTER_FIELDS.PARENT_EMAIL,
         'Your Email': MASTER_FIELDS.PARENT_EMAIL,
 
-        // Mobile variations
+        // Mobile variations - ACTUAL FORM FIELD
+        'Parent Mobile Number': MASTER_FIELDS.PARENT_MOBILE,
         'Mobile': MASTER_FIELDS.PARENT_MOBILE,
         'Your Mobile': MASTER_FIELDS.PARENT_MOBILE,
         'WhatsApp Number': MASTER_FIELDS.PARENT_MOBILE,
 
-        // Interest level variations
+        // Interest level variations - ACTUAL FORM FIELD
+        'Interested in the Gifted Summer Program ': MASTER_FIELDS.INTEREST_LEVEL,
         'Interest': MASTER_FIELDS.INTEREST_LEVEL,
         'How likely are you to enroll?': MASTER_FIELDS.INTEREST_LEVEL,
 
@@ -80,6 +83,11 @@ const WEBSITE_CONFIG = {
     },
     // WEBSITE SPECIFIC INTEREST LEVEL MAPPINGS
     interestLevelMapping: {
+        'Very interested in the GenWise Summer Program': 'High',
+        'Interested in the GenWise Summer Program': 'High',
+        'Considering the GenWise Summer Program': 'Medium',
+        'Might be interested in the GenWise Summer Program': 'Medium',
+        'Not interested in the GenWise Summer Program right now': 'Low',
         'Very Likely': 'High',
         'Definitely': 'High',
         'Likely': 'High',
