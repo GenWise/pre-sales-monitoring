@@ -48,7 +48,7 @@ class FreshSalesSyncService {
             batchSize: 10,
             syncInterval: {
                 toFreshSales: '0 * * * *', // Every hour - new leads from sheets
-                fromFreshSales: '0 */2 * * *', // Every 2 hours - status updates from CRM
+                fromFreshSales: '0 * * * *', // Every hour - status updates from CRM
                 healthCheck: '0 */6 * * *'    // Every 6 hours - system health
             },
 

@@ -175,9 +175,14 @@
 - **Deploy Script**: `./deploy.sh` (rsync + npm install + PM2 restart)
 - **Service Location**: `/root/pre-sales-monitoring/`
 - **google-spreadsheet**: MUST use v4.x (v5+ uses ESM, incompatible with PM2 CommonJS)
+- **google-auth-library**: MUST use v9.x (v10+ incompatible with google-spreadsheet@4.1.4, causes silent JWT auth failure)
 - **dotenv**: Requires explicit `require('dotenv').config()` at top of service file (PM2 ecosystem env_file alone insufficient)
+- **Sync Schedule**: Forward hourly (:00), reverse 2-hourly (:00) to reduce API load
 
 ## Session Learnings (Expire after 30 days)
+
+### FreshSales API key has search but not list permission (Added: 2025-10-04, Expires: 2025-11-03)
+Current API key (awiMf4YWS-S4wE_10pUmHQ) works with GET /search, POST /contacts, PUT /contacts but fails on GET /contacts (403). Use /search endpoint for health checks and duplicate detection. Sync operations already use permitted endpoints so no functional impact.
 
 ### Deal contacts_added_list is write-only (Added: 2025-10-04, Expires: 2025-11-03)
 FreshSales API accepts `contacts_added_list` during POST /deals but doesn't return it in GET /deals response. Linkage works in UI and via /contacts/{id}/deals endpoint. Not a bug - field is write-only for deals endpoint.

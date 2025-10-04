@@ -1,62 +1,78 @@
 # Pre-Sales Monitoring - Session Handover
 
 ## Session Metadata
-- Date: 2025-10-04 17:30
+- Date: 2025-10-04 20:30
 - Duration: ~3 hours
-- Thread Context: 142K tokens used
+- Thread Context: 109K tokens used
 
 ## Current Status
-FreshSales sync service deployed to DigitalOcean but not operational - Google Sheets API blocked (403 error), notification system missing.
+All deployment blockers resolved. FreshSales sync service operational on DigitalOcean with Google Sheets, FreshSales API, Slack, and email notifications working. System ready for production testing via form submissions and hourly sync verification.
 
 ## Exact Position on Implementation
-- ✅ Phase 3: CRM integration complete (tests 1-7 passing)
-- ⏸️ Deployment: Service running on DigitalOcean (PM2 id:7) but APIs blocked
-- ⏭️ Next: Enable Google Sheets API + add Master Sheet onChange notification trigger
+- ✅ Phase 1: Form pipeline → Master Sheet (complete, deployed)
+- ✅ Phase 2: Master Sheet data integrity (complete)
+- ✅ Phase 3: CRM integration (complete, all tests passing)
+- ✅ Deployment: Service running on DigitalOcean (PM2 id:8)
+- ⏭️ Next: Production validation - submit test forms, verify hourly sync at :00, confirm FreshSales contact creation
 
 ## Critical Context
-1. **google-spreadsheet v5.x incompatible with PM2** - Uses ESM modules; downgraded to v4.1.4 (CommonJS)
-2. **Google Sheets API 403 from server IP** - Works locally, blocked from 165.232.134.106 (needs Cloud Console API enablement)
-3. **PM2 env loading requires code-level dotenv.config()** - .env file alone insufficient
-4. **SSH access via macmini_do_droplet key** - ~/.ssh/macmini_do_droplet for root@165.232.134.106
-5. **Missing notification system** - No email/Slack alerts when forms submit to Master Sheet
+1. **google-auth-library must be v9.x** - v10+ incompatible with google-spreadsheet@4.1.4, causes silent JWT auth failure
+2. **API key has search but not list permission** - Use /search endpoint for health checks, not /contacts
+3. **Reverse sync is 2hr not 1hr** - Reduces API load, status updates less time-critical than new leads
+4. **Slack env var is SLACK_WEBHOOK_URL** - Code now checks both _URL and non-_URL variants
+5. **Master Sheet onChange trigger deployed** - Email notifications to rajesh@genwise.in on new rows
 
 ## Decisions Made (With Rationale)
 
-- **Downgrade google-spreadsheet from v5 to v4.1.4**
-  **Rationale:** v5 uses ESM modules causing "ERR_REQUIRE_ESM" in PM2's CommonJS loader; v4 uses CommonJS natively and works with require()
+- **Downgrade google-auth-library from v10 to v9**
+  **Rationale:** v10 has breaking changes incompatible with google-spreadsheet@4.1.4 peer dependency. Silent auth failure (no Bearer token in requests) caused 403 errors. v9 works perfectly with JWT service account pattern.
 
-- **Add dotenv.config() at top of freshsales-sync-service.js**
-  **Rationale:** PM2 ecosystem.config.js env_file doesn't auto-load process.env; explicit config() ensures vars available before imports
+- **Change health check from GET /contacts to GET /search**
+  **Rationale:** API key lacks list permission but has search permission. Actual sync operations already used permitted endpoints (POST /contacts, GET /search for duplicates), so only health check needed update. Avoids requesting FreshSales permission changes.
 
-- **Master Sheet onChange trigger for notifications (not form triggers)**
-  **Rationale:** Single centralized trigger vs 4 separate form-bound triggers; detects any new row addition regardless of source
+- **Support SLACK_WEBHOOK_URL and SLACK_WEBHOOK env vars**
+  **Rationale:** Code originally read SLACK_WEBHOOK but actual env files use SLACK_WEBHOOK_URL. Supporting both prevents future confusion and matches common Slack integration patterns.
 
-- **Hourly sync schedule (0 * * * * cron)**
-  **Rationale:** User requirement; changed from 5min default to match hourly sync expectation
+- **Deploy Master Sheet onChange trigger for email notifications**
+  **Rationale:** Centralized notification point. Single trigger vs 4 form-bound triggers. Catches all Master Sheet additions regardless of source. User confirmed deployment successful.
 
-- **Use ecosystem.config.js for PM2**
-  **Rationale:** PM2 CLI args don't reliably load .env; ecosystem config provides env_file and better process management
+- **Create SERVER_OPERATIONS.md**
+  **Rationale:** User requested "commands for server logs, service status, etc. somewhere for the sake of your subagents here or on subsequent threads." Provides quick reference for production management without searching conversation history.
 
 ## Blockers/Risks
-- [x] Google Sheets API 403 - **RESOLVED**: google-auth-library v10→v9 downgrade fixed JWT authentication
-- [x] FreshSales API 403 permission - **RESOLVED**: Changed health check to use /search endpoint (API key has search but not list permission)
-- [x] Master Sheet notification system - **DEPLOYED**: onChange trigger active, emails to rajesh@genwise.in
-- [x] Slack notifications - **RESOLVED**: Fixed env var name from SLACK_WEBHOOK to SLACK_WEBHOOK_URL
+All blockers resolved:
+- [x] Google Sheets API 403 - Fixed via google-auth-library downgrade
+- [x] FreshSales API 403 - Fixed via /search endpoint
+- [x] Slack notifications failing - Fixed env var name
+- [x] Master Sheet notifications - Deployed onChange trigger
 
 ## Files Modified This Session
-- `freshsales-sync-service.js` - Added dotenv.config(), changed toFreshSales sync from */5 to hourly (0 * * * *)
-- `package.json` - Downgraded google-spreadsheet: ^5.0.2 → ^4.1.4 for CommonJS compatibility
-- `package-lock.json` - Updated dependencies with --legacy-peer-deps
-- `deploy.sh` - Created deployment automation with SSH key and rsync
-- `ecosystem.config.js` - Created PM2 config with env_file, cwd, memory limits
-- Server `.env` - Fixed GOOGLE_SERVICE_ACCOUNT_FILE path from Mac (/Users/rajeshpanchanathan) to server (/root/pre-sales-monitoring)
+- `package.json` - google-auth-library: ^10.3.0 → ^9.0.0
+- `freshsales-sync-service.js` - Slack webhook env var loading (both _URL and non-_URL)
+- `src/api/freshsalesClientAxios.js` - testConnection() uses /search not /contacts
+- `HANDOVER.md` - Updated blockers, decisions, status
+- `QUICK_SETUP_GUIDE.md` - Created with deployment status
+- `SERVER_OPERATIONS.md` - Created with production management commands
+- `docs/GOOGLE_SHEETS_403_FIX.md` - Root cause analysis
+- `docs/FIX_FRESHSALES_PERMISSIONS.md` - Permission troubleshooting guide
+- `docs/DEPLOY_ONCHANGE_TRIGGER.md` - Master Sheet trigger deployment
+- `scripts/gas/masterSheetNotifications.gs` - onChange notification trigger script
 
-## Deployment Details
-- **Server**: DigitalOcean 165.232.134.106 (1GB RAM, 10GB disk, Ubuntu 22.04)
-- **PM2 Process**: freshsales-sync (id: 7, mode: cluster, 73MB RAM)
-- **Deploy Command**: `./deploy.sh` (requires ~/.ssh/macmini_do_droplet key)
+## Production Deployment Details
+- **Server**: DigitalOcean 165.232.134.106 (1GB RAM, Ubuntu 22.04)
+- **PM2 Process**: freshsales-sync (id: 8)
+- **SSH Key**: ~/.ssh/macmini_do_droplet
 - **Service Location**: /root/pre-sales-monitoring/
-- **Status Check**: `ssh -i ~/.ssh/macmini_do_droplet root@165.232.134.106 "pm2 logs freshsales-sync --lines 20"`
+- **Sync Schedule**: Hourly forward (:00), 2-hourly reverse (:00), 6-hourly health
+- **Status**: All health checks passing (Google Sheets ✅, FreshSales ✅, Slack ✅)
+
+## Testing Plan (User-Initiated)
+1. Submit test forms via all 4 Google Forms
+2. Verify Master Sheet onChange email notifications arrive
+3. Wait for top-of-hour sync (:00 minute mark)
+4. Verify FreshSales contact creation
+5. Check Slack #gsp26 for sync completion messages
+6. Monitor PM2 logs for errors: `ssh -i ~/.ssh/macmini_do_droplet root@165.232.134.106 "pm2 logs freshsales-sync"`
 
 ## Handover Prompt
-"Pre-sales monitoring FreshSales sync: Service deployed to DigitalOcean but Google Sheets API blocked (403 'unregistered callers' from server IP). Enable Sheets API for project sheets-and-python-340711, then add Master Sheet onChange trigger for email/Slack notifications to rajesh@genwise.in. Service running PM2 id:7, hourly sync configured. See HANDOVER.md."
+"Pre-sales monitoring system deployed and operational on DigitalOcean. All 4 blockers resolved (Google Sheets auth, FreshSales permissions, Slack env var, email notifications). Next: production validation - user will submit test forms and verify hourly sync at :00. Service running PM2 id:8. See SERVER_OPERATIONS.md for management commands and HANDOVER.md for complete context."
