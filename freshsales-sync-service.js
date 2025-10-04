@@ -35,7 +35,7 @@ class FreshSalesSyncService {
             freshsalesDomain: 'genwisecrm.myfreshworks.com',
 
             // Slack notifications
-            slackWebhook: process.env.SLACK_WEBHOOK || '[SET_SLACK_WEBHOOK_URL]',
+            slackWebhook: process.env.SLACK_WEBHOOK_URL || process.env.SLACK_WEBHOOK || '[SET_SLACK_WEBHOOK_URL]',
 
             // Email notifications
             notifications: {

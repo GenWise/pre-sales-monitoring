@@ -38,9 +38,10 @@ FreshSales sync service deployed to DigitalOcean but not operational - Google Sh
   **Rationale:** PM2 CLI args don't reliably load .env; ecosystem config provides env_file and better process management
 
 ## Blockers/Risks
-- [ ] Google Sheets API 403 - Enable Sheets API for project `sheets-and-python-340711` from server IP 165.232.134.106
-- [ ] FreshSales API 403 permission (not 401 auth) - API key loads but may need additional CRM permissions
-- [ ] Master Sheet notification system unimplemented - Need Apps Script onChange trigger
+- [x] Google Sheets API 403 - **RESOLVED**: google-auth-library v10→v9 downgrade fixed JWT authentication
+- [x] FreshSales API 403 permission - **RESOLVED**: Changed health check to use /search endpoint (API key has search but not list permission)
+- [x] Master Sheet notification system - **DEPLOYED**: onChange trigger active, emails to rajesh@genwise.in
+- [x] Slack notifications - **RESOLVED**: Fixed env var name from SLACK_WEBHOOK to SLACK_WEBHOOK_URL
 
 ## Files Modified This Session
 - `freshsales-sync-service.js` - Added dotenv.config(), changed toFreshSales sync from */5 to hourly (0 * * * *)

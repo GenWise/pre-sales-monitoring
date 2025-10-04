@@ -341,7 +341,8 @@ class FreshSalesClient {
      */
     async testConnection() {
         try {
-            await this.makeRequestWithRetry('/contacts?per_page=1');
+            // Use search endpoint instead of list (works with restricted API key permissions)
+            await this.makeRequestWithRetry('/search?q=test&include=contact&per_page=1');
             return true;
         } catch (error) {
             console.warn('FreshSales connection test failed:', error.message);
