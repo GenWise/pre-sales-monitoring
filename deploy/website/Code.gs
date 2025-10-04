@@ -17,6 +17,8 @@
 // WEBSITE CONFIGURATION - DO NOT CHANGE
 const MASTER_SHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ';
 const FORM_SOURCE_TAG = 'website';
+const SLACK_WEBHOOK_URL = 'REDACTED_SLACK_WEBHOOK';
+const EMAIL_RECIPIENTS = 'rajesh@genwise.in';
 
 // EXACT DROPDOWN VALUES FROM MASTER SHEET - MUST MATCH EXACTLY
 const ALLOWED_VALUES = {
@@ -127,6 +129,10 @@ function onFormSubmit(e) {
         if (result.success) {
             console.log('✅ Successfully wrote website data to master database');
             logSuccess(formData, result);
+
+            // Send notifications immediately after successful write
+            sendEmailNotification(mappedData);
+            sendSlackNotification(mappedData);
         } else {
             console.error('❌ Failed to write website data to master database:', result.error);
             logError(formData, result.error);
@@ -367,6 +373,166 @@ function checkForDuplicate(worksheet, email, emailColumn) {
     } catch (error) {
         console.error('Error checking for duplicates:', error.toString());
         return { isDuplicate: false };
+    }
+}
+
+/**
+ * Send email notification for new submission
+ */
+function sendEmailNotification(mappedData) {
+    try {
+        const isDuplicate = mappedData[MASTER_FIELDS.DUPLICATE_FLAG] === 'Yes';
+        const subject = `[GSP26] New Lead Submitted - ${mappedData[MASTER_FIELDS.PARENT_NAME]}`;
+
+        const htmlBody = `
+<html>
+<head>
+<style>
+body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+.header { background-color: #4CAF50; color: white; padding: 15px; border-radius: 5px 5px 0 0; }
+.content { background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+.field { margin-bottom: 12px; }
+.label { font-weight: bold; color: #555; display: inline-block; width: 140px; }
+.value { color: #333; }
+.duplicate { background-color: #f8d7da; padding: 10px; border-left: 4px solid #dc3545; margin: 15px 0; }
+.important { background-color: #fff3cd; padding: 10px; border-left: 4px solid #ffc107; margin: 15px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header"><h2 style="margin: 0;">🎓 New GSP26 Lead Submitted</h2></div>
+<div class="content">
+${isDuplicate ? '<div class="duplicate">⚠️ <strong>DUPLICATE LEAD</strong> - This email has submitted before</div>' : ''}
+<div class="field"><span class="label">Child Name:</span><span class="value">${mappedData[MASTER_FIELDS.CHILD_NAME]}</span></div>
+<div class="field"><span class="label">Parent Name:</span><span class="value">${mappedData[MASTER_FIELDS.PARENT_NAME]}</span></div>
+<div class="field"><span class="label">Parent Email:</span><span class="value">${mappedData[MASTER_FIELDS.PARENT_EMAIL]}</span></div>
+<div class="field"><span class="label">Parent Mobile:</span><span class="value">${mappedData[MASTER_FIELDS.PARENT_MOBILE]}</span></div>
+<div class="field"><span class="label">Interest Level:</span><span class="value"><strong>${mappedData[MASTER_FIELDS.INTEREST_LEVEL]}</strong></span></div>
+<div class="field"><span class="label">Source:</span><span class="value">${FORM_SOURCE_TAG.replace('_', ' ').toUpperCase()}</span></div>
+${mappedData[MASTER_FIELDS.INTEREST_LEVEL] === 'High' ? '<div class="important">🔥 <strong>HIGH INTEREST</strong> - Priority follow-up recommended</div>' : ''}
+<div style="margin-top: 20px;"><a href="https://docs.google.com/spreadsheets/d/${MASTER_SHEET_ID}" style="background-color: #4CAF50; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;">View Master Sheet →</a></div>
+</div>
+</div>
+</body>
+</html>`;
+
+        MailApp.sendEmail({
+            to: EMAIL_RECIPIENTS,
+            subject: subject,
+            htmlBody: htmlBody,
+            name: 'GSP26 Pre-Sales System'
+        });
+
+        console.log('✅ Email notification sent to:', EMAIL_RECIPIENTS);
+    } catch (error) {
+        console.error('❌ Error sending email:', error.toString());
+    }
+}
+
+/**
+ * Send Slack notification for new submission
+ */
+function sendSlackNotification(mappedData) {
+    try {
+        const isDuplicate = mappedData[MASTER_FIELDS.DUPLICATE_FLAG] === 'Yes';
+        const duplicateText = isDuplicate ? '🔴 DUPLICATE DETECTED' : '🟢 New Submission';
+        const priorityEmoji = getPriorityEmoji(mappedData[MASTER_FIELDS.INTEREST_LEVEL]);
+
+        const slackPayload = {
+            text: `New ${FORM_SOURCE_TAG} submission - ${mappedData[MASTER_FIELDS.CHILD_NAME] || 'Unknown Child'}`,
+            blocks: [
+                {
+                    type: "header",
+                    text: {
+                        type: "plain_text",
+                        text: `${priorityEmoji} New ${FORM_SOURCE_TAG.toUpperCase()} Form Submission`
+                    }
+                },
+                {
+                    type: "section",
+                    fields: [
+                        {
+                            type: "mrkdwn",
+                            text: `*Child:* ${mappedData[MASTER_FIELDS.CHILD_NAME] || 'Not provided'}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*Parent:* ${mappedData[MASTER_FIELDS.PARENT_NAME] || 'Not provided'}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*Email:* ${mappedData[MASTER_FIELDS.PARENT_EMAIL] || 'Not provided'}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*Mobile:* ${mappedData[MASTER_FIELDS.PARENT_MOBILE] || 'Not provided'}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*Interest:* ${mappedData[MASTER_FIELDS.INTEREST_LEVEL] || 'Medium'}`
+                        },
+                        {
+                            type: "mrkdwn",
+                            text: `*Status:* ${duplicateText}`
+                        }
+                    ]
+                },
+                {
+                    type: "context",
+                    elements: [
+                        {
+                            type: "mrkdwn",
+                            text: `📅 ${new Date().toLocaleString()} | 🏷️ Source: ${FORM_SOURCE_TAG}`
+                        }
+                    ]
+                },
+                {
+                    type: "actions",
+                    elements: [
+                        {
+                            type: "button",
+                            text: {
+                                type: "plain_text",
+                                text: "📊 View Master Sheet"
+                            },
+                            url: `https://docs.google.com/spreadsheets/d/${MASTER_SHEET_ID}/edit`
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const response = UrlFetchApp.fetch(SLACK_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            payload: JSON.stringify(slackPayload),
+            muteHttpExceptions: true
+        });
+
+        const responseCode = response.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            console.log('✅ Slack notification sent successfully');
+        } else {
+            console.error('⚠️ Slack notification failed:', responseCode, response.getContentText());
+        }
+
+    } catch (error) {
+        console.error('❌ Error sending Slack notification:', error.toString());
+    }
+}
+
+/**
+ * Get priority emoji based on interest level
+ */
+function getPriorityEmoji(interestLevel) {
+    switch (interestLevel) {
+        case 'High': return '🔥';
+        case 'Medium': return '📝';
+        case 'Low': return '📋';
+        default: return '📝';
     }
 }
 
