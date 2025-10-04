@@ -17,14 +17,14 @@ const CONFIG = {
   EMAIL_RECIPIENTS: 'rajesh@genwise.in',
 
   // Slack webhook URL (optional - leave empty to disable Slack)
-  SLACK_WEBHOOK_URL: '', // Add your webhook URL here if needed
+  SLACK_WEBHOOK_URL: 'REDACTED_SLACK_WEBHOOK',
 
   // Email subject prefix
   EMAIL_SUBJECT_PREFIX: '[GSP26] New Lead Submitted',
 
   // Notification settings
   SEND_EMAIL: true,
-  SEND_SLACK: false, // Set to true if Slack webhook configured
+  SEND_SLACK: true, // Slack webhook configured
 
   // Master Sheet column indices (0-based)
   COLUMNS: {
