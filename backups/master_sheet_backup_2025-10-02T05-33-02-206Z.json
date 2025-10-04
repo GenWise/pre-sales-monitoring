@@ -1,0 +1,694 @@
+{
+  "metadata": {
+    "backupTimestamp": "2025-10-02T05:33:02.202Z",
+    "originalSheetId": "1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ",
+    "originalSheetTitle": "**Pre-sales Monitoring Master Database**",
+    "originalSheetName": "Sheet1",
+    "originalHeaders": [
+      "Child Name",
+      "Parent Name",
+      "Parent Email",
+      "Parent Mobile",
+      "Interest Level",
+      "Source Tag",
+      "Timestamp",
+      "Duplicate Flag",
+      "Status",
+      "Assigned Owner",
+      "Notes"
+    ],
+    "totalRows": 41,
+    "reason": "Pre-cleanup backup for CLEAN SLATE implementation"
+  },
+  "headers": [
+    "Child Name",
+    "Parent Name",
+    "Parent Email",
+    "Parent Mobile",
+    "Interest Level",
+    "Source Tag",
+    "Timestamp",
+    "Duplicate Flag",
+    "Status",
+    "Assigned Owner",
+    "Notes"
+  ],
+  "data": [
+    {
+      "rowIndex": 2,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 3,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 4,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 5,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 6,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 7,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 8,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 9,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 10,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 11,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 12,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 13,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 14,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 15,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 16,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 17,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 18,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 19,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 20,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 21,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 22,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 23,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 24,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 25,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 26,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 27,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 28,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 29,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 30,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 31,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 32,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 33,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 34,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 35,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 36,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 37,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 38,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 39,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 40,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 41,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    },
+    {
+      "rowIndex": 42,
+      "data": {
+        "Child Name": "",
+        "Parent Name": "",
+        "Parent Email": "",
+        "Parent Mobile": "",
+        "Interest Level": "",
+        "Source Tag": "",
+        "Timestamp": "",
+        "Duplicate Flag": "",
+        "Status": "",
+        "Assigned Owner": "",
+        "Notes": ""
+      }
+    }
+  ]
+}

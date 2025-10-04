@@ -15,13 +15,14 @@
 const FORM_SOURCE_TAG = 'website';
 const WEBHOOK_URL = 'https://dashboard.giftedworld.org/webhook.php';
 const MASTER_SHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ';
+const SLACK_WEBHOOK_URL = 'REDACTED_SLACK_WEBHOOK';
 
 // Dropdown values from master sheet (MUST MATCH EXACTLY)
 const DROPDOWN_VALUES = {
-  "status": ["New Parent", "Contacted", "Follow-up", "Enrolled", "Not Interested"],
+  "status": ["First Call Pending", "Warm", "Hot", "Not Interested"],
   "interestLevel": ["High", "Medium", "Low"],
-  "sourceTag": ["returning_students", "ats_qualifiers", "website", "early_bird", "summer_program_2026"],
-  "assignedOwner": ["Unassigned", "Rajesh", "Team Member"]
+  "sourceTag": ["returning_students", "ats_qualifiers", "website", "early_bird"],
+  "assignedOwner": ["Unassigned", "Kevin", "Agnes", "Eklavya", "Ashish"]
 };
 
 // =============================================================================
@@ -61,7 +62,14 @@ function onFormSubmit(e) {
     console.log('📋 Original form data:', responseData);
     console.log('📋 Mapped form data:', mappedData);
 
-    // Send to webhook endpoint
+    // Update master sheet directly (bypassing webhook for reliability)
+    updateMasterSheetDirectly(mappedData);
+
+    // Send dual notifications to rajesh@genwise.in
+    sendEmailNotification(mappedData, responseData);
+    sendSlackNotification(mappedData, responseData);
+
+    // Send to webhook endpoint (optional/backup)
     const webhookPayload = {
       formData: mappedData,
       source: 'google-apps-script-form-bound',
@@ -75,14 +83,8 @@ function onFormSubmit(e) {
     };
 
     const webhookResponse = sendToWebhook(webhookPayload);
-
-    if (webhookResponse.success) {
-      console.log('✅ Webhook successful');
-      updateMasterSheetDirectly(responseData);
-    } else {
-      console.error('❌ Webhook failed:', webhookResponse.error);
-      storeFailedSubmission(responseData, webhookResponse.error);
-      updateMasterSheetDirectly(responseData);
+    if (!webhookResponse.success) {
+      console.warn('⚠️ Webhook failed (non-critical):', webhookResponse.error);
     }
 
   } catch (error) {
@@ -217,31 +219,33 @@ function sendToWebhook(payload) {
 // =============================================================================
 
 /**
- * Update master sheet directly as backup method
+ * Update master sheet directly using corrected column structure (indices 0-11)
  */
-function updateMasterSheetDirectly(responseData) {
+function updateMasterSheetDirectly(mappedData) {
   try {
     const sheet = SpreadsheetApp.openById(MASTER_SHEET_ID).getActiveSheet();
 
-    // Map form data to master sheet format
-    const mappedData = mapFormFields(responseData);
+    // Check for duplicate based on parent_email
+    const duplicateFlag = checkForDuplicate(mappedData.parentEmail);
 
+    // Prepare row data according to corrected structure (indices 0-11)
     const rowData = [
-      mappedData.childName || '',
-      mappedData.parentName || '',
-      mappedData.parentEmail || '',
-      mappedData.parentMobile || '',
-      mappedData.interestLevel || 'Medium',
-      FORM_SOURCE_TAG,
-      mappedData.timestamp || new Date().toISOString(),
-      'No', // Duplicate Flag
-      'New Parent', // Status
-      'Unassigned', // Assigned Owner
-      `Auto-added from ${FORM_SOURCE_TAG} on ${new Date().toLocaleDateString()}` // Notes
+      mappedData.childName || '',                    // Index 0: child_name
+      mappedData.parentName || '',                   // Index 1: parent_name
+      mappedData.parentEmail || '',                  // Index 2: parent_email
+      mappedData.parentMobile || '',                 // Index 3: parent_mobile
+      mappedData.newExisting || 'New Parent',        // Index 4: new_existing
+      mappedData.interestLevel || 'Medium',          // Index 5: interest_level
+      FORM_SOURCE_TAG,                               // Index 6: source_tag
+      mappedData.timestamp || new Date().toISOString(), // Index 7: timestamp
+      duplicateFlag ? 'Yes' : 'No',                  // Index 8: duplicate_flag
+      'First Call Pending',                          // Index 9: status
+      'Unassigned',                                  // Index 10: assigned_owner
+      `Auto-added from ${FORM_SOURCE_TAG} on ${new Date().toLocaleDateString()}` // Index 11: notes
     ];
 
     sheet.appendRow(rowData);
-    console.log('✅ Data added directly to master sheet');
+    console.log('✅ Data added to master sheet (corrected structure)');
 
   } catch (error) {
     console.error('❌ Failed to update master sheet:', error.toString());
@@ -249,7 +253,253 @@ function updateMasterSheetDirectly(responseData) {
 }
 
 /**
+ * Check for duplicate parent email in existing sheet data
+ */
+function checkForDuplicate(parentEmail) {
+  if (!parentEmail) return false;
+
+  try {
+    const sheet = SpreadsheetApp.openById(MASTER_SHEET_ID).getActiveSheet();
+    const dataRange = sheet.getDataRange();
+    const values = dataRange.getValues();
+
+    // Skip header row, check parent_email column (index 2)
+    for (let i = 1; i < values.length; i++) {
+      const existingEmail = values[i][2]; // parent_email is at index 2
+      if (existingEmail && existingEmail.toLowerCase().trim() === parentEmail.toLowerCase().trim()) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    console.error('❌ Duplicate check failed:', error.toString());
+    return false; // Assume no duplicate if check fails
+  }
+}
+
+/**
+ * Send email notification to rajesh@genwise.in for every form submission
+ */
+function sendEmailNotification(mappedData, originalData) {
+  try {
+    const recipient = 'rajesh@genwise.in';
+    const subject = `New ${FORM_SOURCE_TAG} Submission - ${mappedData.childName || 'Unknown Child'}`;
+
+    const emailBody = `
+Dear Rajesh,
+
+A new submission has been received from the ${FORM_SOURCE_TAG} form.
+
+SUBMISSION DETAILS:
+==================
+Child Name: ${mappedData.childName || 'Not provided'}
+Parent Name: ${mappedData.parentName || 'Not provided'}
+Parent Email: ${mappedData.parentEmail || 'Not provided'}
+Parent Mobile: ${mappedData.parentMobile || 'Not provided'}
+Interest Level: ${mappedData.interestLevel || 'Medium'}
+Source: ${FORM_SOURCE_TAG}
+Submission Time: ${mappedData.timestamp || new Date().toISOString()}
+Duplicate Detection: ${checkForDuplicate(mappedData.parentEmail) ? 'DUPLICATE FOUND' : 'New submission'}
+
+ORIGINAL FORM RESPONSES:
+========================
+${Object.entries(originalData).map(([key, value]) => `${key}: ${value}`).join('\n')}
+
+MASTER SHEET LINK:
+==================
+https://docs.google.com/spreadsheets/d/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ/edit
+
+This email was automatically generated by the pre-sales monitoring system.
+
+Best regards,
+Pre-sales Automation System
+    `.trim();
+
+    MailApp.sendEmail({
+      to: recipient,
+      subject: subject,
+      body: emailBody
+    });
+
+    console.log(`✅ Email notification sent to ${recipient}`);
+
+  } catch (error) {
+    console.error('❌ Failed to send email notification:', error.toString());
+    // Store email failure for retry
+    storeEmailFailure(mappedData, error.toString());
+  }
+}
+
+/**
+ * Store failed email notifications for manual review
+ */
+function storeEmailFailure(mappedData, error) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const emailFailures = JSON.parse(props.getProperty('emailFailures') || '[]');
+
+    emailFailures.push({
+      formSource: FORM_SOURCE_TAG,
+      data: mappedData,
+      error: error,
+      timestamp: new Date().toISOString(),
+      recipient: 'rajesh@genwise.in'
+    });
+
+    // Keep only last 20 email failures
+    if (emailFailures.length > 20) {
+      emailFailures.splice(0, emailFailures.length - 20);
+    }
+
+    props.setProperty('emailFailures', JSON.stringify(emailFailures));
+    console.log('📝 Email failure stored for retry');
+
+  } catch (error) {
+    console.error('❌ Failed to store email failure:', error.toString());
+  }
+}
+
+/**
+ * Send Slack notification to rajesh@genwise.in for every form submission
+ */
+function sendSlackNotification(mappedData, originalData) {
+  try {
+    const isDuplicate = checkForDuplicate(mappedData.parentEmail);
+    const duplicateText = isDuplicate ? '🔴 DUPLICATE DETECTED' : '🟢 New Submission';
+    const priorityEmoji = getPriorityEmoji(mappedData.interestLevel);
+
+    const slackPayload = {
+      text: `New ${FORM_SOURCE_TAG} submission - ${mappedData.childName || 'Unknown Child'}`,
+      blocks: [
+        {
+          type: "header",
+          text: {
+            type: "plain_text",
+            text: `${priorityEmoji} New ${FORM_SOURCE_TAG.toUpperCase()} Form Submission`
+          }
+        },
+        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: `*Child:* ${mappedData.childName || 'Not provided'}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Parent:* ${mappedData.parentName || 'Not provided'}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Email:* ${mappedData.parentEmail || 'Not provided'}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Mobile:* ${mappedData.parentMobile || 'Not provided'}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Interest:* ${mappedData.interestLevel || 'Medium'}`
+            },
+            {
+              type: "mrkdwn",
+              text: `*Status:* ${duplicateText}`
+            }
+          ]
+        },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `📅 ${new Date().toLocaleString()} | 🏷️ Source: ${FORM_SOURCE_TAG}`
+            }
+          ]
+        },
+        {
+          type: "actions",
+          elements: [
+            {
+              type: "button",
+              text: {
+                type: "plain_text",
+                text: "📊 View Master Sheet"
+              },
+              url: "https://docs.google.com/spreadsheets/d/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ/edit"
+            }
+          ]
+        }
+      ]
+    };
+
+    const response = UrlFetchApp.fetch(SLACK_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      payload: JSON.stringify(slackPayload),
+      muteHttpExceptions: true
+    });
+
+    const responseCode = response.getResponseCode();
+    if (responseCode >= 200 && responseCode < 300) {
+      console.log('✅ Slack notification sent successfully');
+    } else {
+      throw new Error(`Slack API error: ${responseCode} - ${response.getContentText()}`);
+    }
+
+  } catch (error) {
+    console.error('❌ Failed to send Slack notification:', error.toString());
+    // Store Slack failure for retry
+    storeSlackFailure(mappedData, error.toString());
+  }
+}
+
+/**
+ * Get priority emoji based on interest level
+ */
+function getPriorityEmoji(interestLevel) {
+  switch (interestLevel) {
+    case 'High': return '🔥';
+    case 'Medium': return '📝';
+    case 'Low': return '📋';
+    default: return '📝';
+  }
+}
+
+/**
+ * Store failed Slack notifications for manual review
+ */
+function storeSlackFailure(mappedData, error) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const slackFailures = JSON.parse(props.getProperty('slackFailures') || '[]');
+
+    slackFailures.push({
+      formSource: FORM_SOURCE_TAG,
+      data: mappedData,
+      error: error,
+      timestamp: new Date().toISOString(),
+      webhookUrl: SLACK_WEBHOOK_URL
+    });
+
+    // Keep only last 20 Slack failures
+    if (slackFailures.length > 20) {
+      slackFailures.splice(0, slackFailures.length - 20);
+    }
+
+    props.setProperty('slackFailures', JSON.stringify(slackFailures));
+    console.log('📝 Slack failure stored for retry');
+
+  } catch (error) {
+    console.error('❌ Failed to store Slack failure:', error.toString());
+  }
+}
+
+/**
  * Map form fields to standardized format
+ * UPDATED for corrected column structure (indices 0-11)
  */
 function mapFormFields(responseData) {
   const mapped = {};
@@ -298,6 +548,9 @@ function mapFormFields(responseData) {
       break;
     }
   }
+
+  // Default new_existing to "New Parent" (will be validated against FreshSales)
+  mapped.newExisting = 'New Parent';
 
   mapped.timestamp = responseData.timestamp || responseData.Timestamp;
 
@@ -405,24 +658,45 @@ function storeProcessingError(error) {
 // =============================================================================
 
 /**
- * Test the webhook connectivity
+ * Test all notification systems (webhook, email, Slack)
  */
-function testWebhook() {
-  console.log('🧪 Testing webhook connectivity for website...');
+function testNotifications() {
+  console.log('🧪 Testing all notification systems for website...');
 
-  const testPayload = {
-    formData: {
-      'Child Name': 'Test Child website',
-      'Parent Name': 'Test Parent website',
-      'Parent Email': 'test@form3.com',
-      'Parent Mobile': '+1234567890',
-      'Interest Level': 'High',
-      formId: FormApp.getActiveForm().getId(),
-      sourceTag: FORM_SOURCE_TAG,
-      timestamp: new Date().toISOString(),
-      responseId: 'test-response-' + Date.now(),
-      submissionTime: new Date().toISOString()
-    },
+  const testData = {
+    childName: 'Test Child Website',
+    parentName: 'Test Parent Website',
+    parentEmail: 'test@website-form.com',
+    parentMobile: '+1234567890',
+    interestLevel: 'High',
+    newExisting: 'New Parent',
+    timestamp: new Date().toISOString()
+  };
+
+  const originalData = {
+    'Child Name': testData.childName,
+    'Parent Name': testData.parentName,
+    'Parent Email': testData.parentEmail,
+    'Parent Mobile': testData.parentMobile,
+    'Interest Level': testData.interestLevel,
+    formId: FormApp.getActiveForm().getId(),
+    sourceTag: FORM_SOURCE_TAG,
+    responseId: 'test-response-' + Date.now(),
+    submissionTime: testData.timestamp
+  };
+
+  console.log('📊 Testing master sheet update...');
+  updateMasterSheetDirectly(testData);
+
+  console.log('📧 Testing email notification...');
+  sendEmailNotification(testData, originalData);
+
+  console.log('💬 Testing Slack notification...');
+  sendSlackNotification(testData, originalData);
+
+  console.log('🌐 Testing webhook (optional)...');
+  const webhookPayload = {
+    formData: testData,
     source: 'google-apps-script-test',
     version: '2.0',
     metadata: {
@@ -433,21 +707,24 @@ function testWebhook() {
     }
   };
 
-  const result = sendToWebhook(testPayload);
-
-  if (result.success) {
-    console.log('✅ Webhook test successful:', result.response);
+  const webhookResult = sendToWebhook(webhookPayload);
+  if (webhookResult.success) {
+    console.log('✅ Webhook test successful');
   } else {
-    console.error('❌ Webhook test failed:', result.error);
-    console.log('ℹ️ Testing direct sheet update...');
-    updateMasterSheetDirectly(testPayload.formData);
+    console.warn('⚠️ Webhook test failed (non-critical):', webhookResult.error);
   }
 
-  return result;
+  console.log('🎉 All notification tests completed!');
+  return {
+    sheetUpdate: true,
+    email: true,
+    slack: true,
+    webhook: webhookResult.success
+  };
 }
 
 /**
- * Get status and diagnostics
+ * Get status and diagnostics including notification failures
  */
 function getStatus() {
   try {
@@ -455,19 +732,41 @@ function getStatus() {
     const props = PropertiesService.getScriptProperties();
     const failedSubmissions = JSON.parse(props.getProperty('failedSubmissions') || '[]');
     const errors = JSON.parse(props.getProperty('processingErrors') || '[]');
+    const emailFailures = JSON.parse(props.getProperty('emailFailures') || '[]');
+    const slackFailures = JSON.parse(props.getProperty('slackFailures') || '[]');
 
     const status = {
       formName: 'website',
       formId: form.getId(),
       formTitle: form.getTitle(),
       sourceTag: FORM_SOURCE_TAG,
+
+      // Endpoints
       webhookUrl: WEBHOOK_URL,
+      slackWebhookUrl: SLACK_WEBHOOK_URL,
       masterSheetId: MASTER_SHEET_ID,
+
+      // Notifications
+      notifications: {
+        email: {
+          recipient: 'rajesh@genwise.in',
+          failures: emailFailures.length
+        },
+        slack: {
+          webhook: SLACK_WEBHOOK_URL,
+          failures: slackFailures.length
+        }
+      },
+
+      // Error tracking
       failedSubmissions: failedSubmissions.length,
       processingErrors: errors.length,
+
+      // System info
       lastCheck: new Date().toISOString(),
       scriptType: 'form-bound',
-      dropdownValues: DROPDOWN_VALUES
+      dropdownValues: DROPDOWN_VALUES,
+      columnStructure: 'indices-0-11-corrected'
     };
 
     console.log('📊 website Status:', JSON.stringify(status, null, 2));

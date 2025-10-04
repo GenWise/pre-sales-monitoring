@@ -99,7 +99,7 @@ async function createMasterSheet() {
         await sheet.addDataValidation('F2:F1000', {
             condition: {
                 type: 'ONE_OF_LIST',
-                values: ['returning_students', 'ats_qualifiers', 'website', 'early_bird', 'summer_program_2026']
+                values: ['returning_students', 'ats_qualifiers', 'website', 'early_bird']
             },
             showCustomUi: true,
             strict: true

@@ -18,10 +18,10 @@ const MASTER_SHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ';
 
 // Dropdown values from master sheet (MUST MATCH EXACTLY)
 const DROPDOWN_VALUES = {
-  "status": ["New Parent", "Contacted", "Follow-up", "Enrolled", "Not Interested"],
+  "status": ["First Call Pending", "Warm", "Hot", "Not Interested"],
   "interestLevel": ["High", "Medium", "Low"],
-  "sourceTag": ["returning_students", "ats_qualifiers", "website", "early_bird", "summer_program_2026"],
-  "assignedOwner": ["Unassigned", "Rajesh", "Team Member"]
+  "sourceTag": ["returning_students", "ats_qualifiers", "website", "early_bird"],
+  "assignedOwner": ["Unassigned", "Kevin", "Agnes", "Eklavya", "Ashish"]
 };
 
 // =============================================================================

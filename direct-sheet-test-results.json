@@ -1,0 +1,90 @@
+{
+  "timestamp": "2025-10-02T07:32:27.365Z",
+  "steps": [
+    {
+      "step": 1,
+      "action": "Connecting to Google Sheets",
+      "timestamp": "2025-10-02T07:32:27.365Z"
+    },
+    {
+      "step": 2,
+      "action": "Getting baseline data",
+      "timestamp": "2025-10-02T07:32:28.175Z"
+    },
+    {
+      "step": 3,
+      "action": "Launching browser",
+      "timestamp": "2025-10-02T07:32:29.365Z"
+    },
+    {
+      "step": 4,
+      "action": "Filling form fields",
+      "timestamp": "2025-10-02T07:32:36.847Z"
+    },
+    {
+      "step": 5,
+      "action": "Submitting form",
+      "timestamp": "2025-10-02T07:32:45.026Z"
+    },
+    {
+      "step": 6,
+      "action": "Waiting for script processing",
+      "timestamp": "2025-10-02T07:32:55.353Z"
+    },
+    {
+      "step": 7,
+      "action": "Checking for new data",
+      "timestamp": "2025-10-02T07:33:10.359Z"
+    },
+    {
+      "step": 8,
+      "action": "Validating data",
+      "timestamp": "2025-10-02T07:33:11.855Z"
+    },
+    {
+      "step": 9,
+      "action": "Test completed",
+      "timestamp": "2025-10-02T07:33:11.855Z"
+    }
+  ],
+  "sheetData": {
+    "baseline": {
+      "rowCount": 38,
+      "timestamp": "2025-10-02T07:32:29.364Z",
+      "lastRowData": {
+        "child_name": "2025-10-02T12:54:58+05:30",
+        "parent_name": "",
+        "parent_email": "",
+        "parent_mobile": ""
+      }
+    },
+    "after": {
+      "rowCount": 38,
+      "timestamp": "2025-10-02T07:33:11.855Z",
+      "lastRowData": {
+        "child_name": "2025-10-02T12:54:58+05:30",
+        "parent_name": "",
+        "parent_email": "",
+        "parent_mobile": "",
+        "new_existing": "",
+        "interest_level": "",
+        "source_tag": "",
+        "timestamp": "",
+        "duplicate_flag": "",
+        "status": "New Parent",
+        "assigned_owner": "Medium",
+        "notes": ""
+      }
+    }
+  },
+  "errors": [
+    "Form submission did not create new row in master sheet"
+  ],
+  "success": false,
+  "testData": {
+    "child_name": "Direct Write Test Child",
+    "parent_name": "Direct Write Test Parent",
+    "parent_email": "directwrite.test@example.com",
+    "parent_mobile": "9876543210"
+  }
+}

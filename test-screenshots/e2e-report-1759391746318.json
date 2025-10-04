@@ -1,0 +1,37 @@
+{
+  "testName": "Pre-sales Monitoring E2E Test",
+  "timestamp": "2025-10-02T07:55:46.318Z",
+  "duration": "16940ms",
+  "success": false,
+  "testData": {
+    "childName": "E2E Test Child",
+    "parentName": "E2E Test Parent",
+    "email": "e2e.test@automation.com",
+    "mobile": "9876543210",
+    "interest": "High"
+  },
+  "baselineLeadCount": null,
+  "steps": [
+    "[2025-10-02T07:55:32.201Z] Browser launched successfully",
+    "[2025-10-02T07:55:32.210Z] Step 1: Navigate to Google Form",
+    "[2025-10-02T07:55:37.426Z] 📸 Screenshot saved: 01-form-loaded-1759391737335.png",
+    "[2025-10-02T07:55:37.426Z] ✓ Form loaded successfully",
+    "[2025-10-02T07:55:37.427Z] Step 2: Get baseline lead count",
+    "[2025-10-02T07:55:37.470Z] ⚠ API unavailable, skipping baseline check: fetch failed",
+    "[2025-10-02T07:55:37.470Z] Step 3: Fill child name field",
+    "[2025-10-02T07:55:37.489Z] ✓ Child name filled: E2E Test Child",
+    "[2025-10-02T07:55:37.489Z] Step 4: Fill parent name field",
+    "[2025-10-02T07:55:39.513Z] ✓ Parent name filled: E2E Test Parent",
+    "[2025-10-02T07:55:39.514Z] Step 5: Fill email field",
+    "[2025-10-02T07:55:45.523Z] 💥 Fatal error: None of the selectors found: input[type=\"email\"], input[aria-label*=\"Email\"], input[aria-label*=\"email\"]",
+    "[2025-10-02T07:55:45.614Z] 📸 Screenshot saved: error-state-1759391745523.png",
+    "[2025-10-02T07:55:46.318Z] Browser closed"
+  ],
+  "errors": [
+    "None of the selectors found: input[type=\"email\"], input[aria-label*=\"Email\"], input[aria-label*=\"email\"]"
+  ],
+  "screenshots": [
+    "01-form-loaded-1759391737335.png",
+    "error-state-1759391745523.png"
+  ]
+}

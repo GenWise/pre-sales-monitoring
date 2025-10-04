@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-10-02T07:12:07.226Z",
+  "steps": [
+    {
+      "step": 1,
+      "action": "Getting baseline API data",
+      "timestamp": "2025-10-02T07:12:07.226Z"
+    },
+    {
+      "step": 2,
+      "action": "Launching browser",
+      "timestamp": "2025-10-02T07:12:07.996Z"
+    },
+    {
+      "step": 3,
+      "action": "Filling form fields",
+      "timestamp": "2025-10-02T07:12:26.471Z"
+    },
+    {
+      "step": 4,
+      "action": "Submitting form",
+      "timestamp": "2025-10-02T07:12:28.753Z"
+    }
+  ],
+  "webhookLogs": [],
+  "apiComparison": {
+    "baseline": {
+      "lastEntry": null,
+      "timestamp": "2025-10-02T07:12:07.995Z"
+    }
+  },
+  "errors": [
+    "Test execution error: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('div:has-text(\"Your response has been recorded\"), div:has-text(\"Thank you\")') to be visible\u001b[22m\n"
+  ],
+  "success": false
+}

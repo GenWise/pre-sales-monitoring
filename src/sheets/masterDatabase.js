@@ -64,7 +64,7 @@ class MasterDatabase {
 
         try {
             // Validate required fields
-            const requiredFields = ['childName', 'parentName', 'parentEmail', 'sourceTag'];
+            const requiredFields = ['child_name', 'parent_name', 'parent_email', 'source_tag'];
             for (const field of requiredFields) {
                 if (!lead[field]) {
                     throw new Error(`Missing required field: ${field}`);
@@ -72,27 +72,27 @@ class MasterDatabase {
             }
 
             // Check for duplicates before adding
-            const isDuplicate = await this.checkForDuplicate(lead.parentEmail, lead.parentMobile);
+            const isDuplicate = await this.checkForDuplicate(lead.parent_email, lead.parent_mobile);
 
             // Prepare row data matching the exact column headers
             const rowData = {
-                'Child Name': lead.childName || '',
-                'Parent Name': lead.parentName || '',
-                'Parent Email': lead.parentEmail || '',
-                'Parent Mobile': lead.parentMobile || '',
-                'Interest Level': lead.interestLevel || 'Medium',
-                'Source Tag': lead.sourceTag || '',
+                'Child Name': lead.child_name || '',
+                'Parent Name': lead.parent_name || '',
+                'Parent Email': lead.parent_email || '',
+                'Parent Mobile': lead.parent_mobile || '',
+                'Interest Level': lead.interest_level || 'Medium',
+                'Source Tag': lead.source_tag || '',
                 'Timestamp': lead.timestamp || new Date().toISOString(),
                 'Duplicate Flag': isDuplicate ? 'Yes' : 'No',
-                'Status': lead.status || 'New Parent',
-                'Assigned Owner': lead.assignedOwner || '',
+                'Status': lead.status || 'First Call Pending',
+                'Assigned Owner': lead.assigned_owner || '',
                 'Notes': lead.notes || ''
             };
 
             // Add the row
             const addedRow = await this.sheet.addRow(rowData);
 
-            console.log(`Added new lead: ${lead.parentName} (${lead.parentEmail})`);
+            console.log(`Added new lead: ${lead.parent_name} (${lead.parent_email})`);
             return {
                 success: true,
                 rowNumber: addedRow.rowNumber,

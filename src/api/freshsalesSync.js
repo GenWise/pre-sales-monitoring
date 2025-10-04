@@ -12,9 +12,11 @@
  * - Mock mode for testing when API permissions are limited
  */
 
-const FreshSalesClient = require('./freshsalesClient');
+const FreshSalesClient = require('./freshsalesClientAxios');
 const FreshSalesMapper = require('./freshsalesMapper');
+const CRMChangeTracker = require('./crmChangeTracker');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
+const { JWT } = require('google-auth-library');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -23,13 +25,18 @@ class FreshSalesSync {
         this.client = new FreshSalesClient(config);
         this.mapper = new FreshSalesMapper();
 
+        // 🛡️ SAFETY FIRST: Initialize change tracker for CRM safety
+        this.changeTracker = new CRMChangeTracker({
+            testSessionId: config.testSessionId || `sync_${Date.now()}`
+        });
+
         // Configuration
         this.masterSheetId = config.masterSheetId || process.env.PRESALES_MASTER_SHEET_ID;
         this.serviceAccountFile = config.serviceAccountFile || process.env.GOOGLE_SERVICE_ACCOUNT_FILE;
         this.mockMode = config.mockMode || false;
 
-        // Sync settings
-        this.batchSize = config.batchSize || 10;
+        // 🚨 SAFE TESTING: Force batch size to 1 for controlled testing
+        this.batchSize = 1; // Override any config - SAFETY REQUIREMENT
         this.duplicateStrategy = config.duplicateStrategy || 'skip'; // 'skip', 'update', 'create_new'
         this.syncDirection = config.syncDirection || 'bidirectional'; // 'to_crm', 'from_crm', 'bidirectional'
 
@@ -57,9 +64,15 @@ class FreshSalesSync {
         this.resetSyncStats();
 
         try {
+            // Apply TIP requirement: only sync status-eligible records by default
+            const syncOptions = {
+                syncEligibleOnly: true,
+                ...options
+            };
+
             // Load leads from master database
-            const leads = await this.loadLeadsFromMasterDatabase(options);
-            console.log(`Loaded ${leads.length} leads from master database`);
+            const leads = await this.loadLeadsFromMasterDatabase(syncOptions);
+            console.log(`Loaded ${leads.length} sync-eligible leads from master database (status: Warm|Hot|Not Interested)`);
 
             if (leads.length === 0) {
                 return this.generateSyncReport('No leads found to sync');
@@ -179,15 +192,67 @@ class FreshSalesSync {
             // Check for existing contact
             const existingContact = await this.findExistingContact(leadData);
 
+            let contactId = null;
             if (existingContact) {
                 await this.handleExistingContact(existingContact, contactData, leadData);
+                contactId = existingContact.id;
             } else {
-                await this.createNewContact(contactData, leadData);
+                contactId = await this.createNewContact(contactData, leadData);
+            }
+
+            // Update Master Sheet with CRM contact link if contact was created/found
+            if (contactId) {
+                await this.updateMasterSheetWithCrmLink(leadData, contactId);
             }
 
         } catch (error) {
             console.error(`Failed to process lead ${leadData.childName || 'Unknown'}:`, error.message);
             throw error;
+        }
+    }
+
+    /**
+     * Update Master Sheet row with CRM contact link
+     * @param {Object} leadData - Lead data (must have parent_email or parentEmail)
+     * @param {string} contactId - FreshSales contact ID
+     */
+    async updateMasterSheetWithCrmLink(leadData, contactId) {
+        try {
+            const crmContactUrl = `https://genwisecrm.myfreshworks.com/crm/sales/contacts/${contactId}`;
+
+            // Load Master Sheet
+            let authClient = null;
+            if (this.serviceAccountFile) {
+                const serviceAccountInfo = JSON.parse(await fs.readFile(this.serviceAccountFile, 'utf8'));
+                authClient = new JWT({
+                    email: serviceAccountInfo.client_email,
+                    key: serviceAccountInfo.private_key,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+                });
+            }
+
+            const doc = new GoogleSpreadsheet(this.masterSheetId, authClient);
+            await doc.loadInfo();
+            const sheet = doc.sheetsByIndex[0];
+            const rows = await sheet.getRows();
+
+            // Find row by email
+            const parentEmail = leadData.parentEmail || leadData['Parent Email'] || leadData.parent_email;
+            const targetRow = rows.find(row => {
+                const rowEmail = row.get('parent_email') || row.get('Parent Email');
+                return rowEmail && parentEmail && rowEmail.toLowerCase() === parentEmail.toLowerCase();
+            });
+
+            if (targetRow) {
+                targetRow.set('crm_contact_link', crmContactUrl);
+                await targetRow.save();
+                console.log(`✅ Updated Master Sheet with CRM link: ${crmContactUrl}`);
+            } else {
+                console.warn(`⚠️  Could not find Master Sheet row for email: ${parentEmail}`);
+            }
+        } catch (error) {
+            console.warn(`⚠️  Failed to update Master Sheet with CRM link:`, error.message);
+            // Non-blocking - Master Sheet update failure doesn't stop sync
         }
     }
 
@@ -220,18 +285,19 @@ class FreshSalesSync {
             const searchCriteria = this.mapper.createSearchCriteria(leadData);
 
             // Search by email first (most reliable)
+            // Note: searchContacts returns array directly, not {contacts: [...]}
             if (searchCriteria.email) {
                 const searchResults = await this.client.searchContacts(searchCriteria.email);
-                if (searchResults.contacts && searchResults.contacts.length > 0) {
-                    return searchResults.contacts[0];
+                if (Array.isArray(searchResults) && searchResults.length > 0) {
+                    return searchResults[0];
                 }
             }
 
             // Search by mobile number if email search fails
             if (searchCriteria.mobile) {
                 const searchResults = await this.client.searchContacts(searchCriteria.mobile);
-                if (searchResults.contacts && searchResults.contacts.length > 0) {
-                    return searchResults.contacts[0];
+                if (Array.isArray(searchResults) && searchResults.length > 0) {
+                    return searchResults[0];
                 }
             }
 
@@ -248,34 +314,36 @@ class FreshSalesSync {
 
     /**
      * Handle existing contact based on duplicate strategy
+     * CRITICAL: Always creates child deal for existing parents (sibling support)
      * @param {Object} existingContact - Existing FreshSales contact
      * @param {Object} newContactData - New contact data
      * @param {Object} leadData - Original lead data
      */
     async handleExistingContact(existingContact, newContactData, leadData) {
         this.syncStats.duplicates++;
+        const contactId = existingContact.id;
 
         switch (this.duplicateStrategy) {
             case 'skip':
-                console.log(`Skipping duplicate contact: ${existingContact.id}`);
+                console.log(`Parent already exists: ${contactId} - Creating child deal only`);
                 this.syncStats.skipped++;
                 break;
 
             case 'update':
                 try {
-                    await this.client.updateContact(existingContact.id, newContactData);
-                    console.log(`Updated existing contact: ${existingContact.id}`);
+                    await this.client.updateContact(contactId, newContactData);
+                    console.log(`Updated existing contact: ${contactId}`);
                     this.syncStats.updated++;
 
                     // Add note about the update
-                    await this.addContactNote(existingContact.id, {
+                    await this.addContactNote(contactId, {
                         title: 'Contact Updated from Pre-sales System',
                         content: `Contact updated with new information from pre-sales lead: ${leadData.childName || 'Unknown'}`
                     });
 
                 } catch (error) {
                     if (error.message.includes('API_PERMISSION_DENIED')) {
-                        console.warn(`Cannot update contact ${existingContact.id}: API permissions insufficient`);
+                        console.warn(`Cannot update contact ${contactId}: API permissions insufficient`);
                         this.syncStats.skipped++;
                     } else {
                         throw error;
@@ -285,53 +353,153 @@ class FreshSalesSync {
 
             case 'create_new':
                 await this.createNewContact(newContactData, leadData);
+                return; // createNewContact handles deal creation
                 break;
 
             default:
                 this.syncStats.skipped++;
         }
+
+        // CRITICAL: Create child deal even when parent exists (sibling support)
+        if (contactId) {
+            const dealData = this.mapper.mapLeadToDeal(leadData, contactId);
+            const dealChangeId = await this.changeTracker.recordOperation(
+                'create',
+                '/deals',
+                { deal: dealData },
+                null
+            );
+
+            console.log(`🚨 CREATING DEAL (Sibling/Additional Child) with tracking: ${dealChangeId}`);
+            const dealResponse = await this.client.createDeal(dealData);
+            await this.changeTracker.recordResponse(dealChangeId, dealResponse);
+
+            const dealId = dealResponse.deal?.id;
+            console.log(`✅ Created Child Deal: ${dealId} (${dealData.name}) for existing parent ${contactId}`);
+            console.log(`🛡️ Deal change tracked as: ${dealChangeId}`);
+        }
     }
 
     /**
-     * Create new contact in FreshSales
+     * Create new contact in FreshSales (PARENT) and associated deal (CHILD)
      * @param {Object} contactData - Contact data
      * @param {Object} leadData - Original lead data
+     * @returns {Promise<string|null>} Contact ID if created successfully
      */
     async createNewContact(contactData, leadData) {
         try {
-            const response = await this.client.createContact(contactData);
-            console.log(`Created new contact: ${response.contact?.id || 'Unknown ID'}`);
+            // STEP 1: Create Contact (Parent)
+            const safeContactData = this.changeTracker.addTestTags({...contactData});
+            const contactChangeId = await this.changeTracker.recordOperation(
+                'create',
+                '/contacts',
+                { contact: safeContactData },
+                null
+            );
+
+            console.log(`🚨 CREATING CONTACT (Parent) with tracking: ${contactChangeId}`);
+            const contactResponse = await this.client.createContact(safeContactData);
+            await this.changeTracker.recordResponse(contactChangeId, contactResponse);
+
+            const contactId = contactResponse.contact?.id;
+            console.log(`✅ Created Parent Contact: ${contactId}`);
+            console.log(`🛡️ Contact change tracked as: ${contactChangeId}`);
             this.syncStats.created++;
 
-            // Add initial note
-            if (response.contact?.id) {
-                await this.addContactNote(response.contact.id, {
-                    title: 'New Lead from Pre-sales System',
-                    content: `Contact created from pre-sales lead. Original timestamp: ${leadData.timestamp || 'Unknown'}`
-                });
+            // STEP 1.5: Update contact with status and owner (FreshSales API ignores these during POST)
+            if (contactId && (safeContactData.contact_status_id || safeContactData.cf_parent_owner)) {
+                const updateData = {};
+                if (safeContactData.contact_status_id) {
+                    updateData.contact_status_id = safeContactData.contact_status_id;
+                }
+                if (safeContactData.cf_parent_owner) {
+                    updateData.cf_parent_owner = safeContactData.cf_parent_owner;
+                }
+
+                console.log(`🔄 UPDATING CONTACT with status/owner (FreshSales API quirk workaround)`);
+                const updateChangeId = await this.changeTracker.recordOperation(
+                    'update',
+                    `/contacts/${contactId}`,
+                    { contact: updateData },
+                    contactResponse.contact
+                );
+
+                const updateResponse = await this.client.updateContact(contactId, updateData);
+                await this.changeTracker.recordResponse(updateChangeId, updateResponse);
+                console.log(`✅ Updated contact ${contactId} with status/owner`);
             }
 
+            // STEP 2: Create Deal (Child) under this Contact
+            if (contactId) {
+                const dealData = this.mapper.mapLeadToDeal(leadData, contactId);
+                // Note: Do NOT call addTestTags on deals - it's for contacts only
+                const dealChangeId = await this.changeTracker.recordOperation(
+                    'create',
+                    '/deals',
+                    { deal: dealData },
+                    null
+                );
+
+                console.log(`🚨 CREATING DEAL (Child) with tracking: ${dealChangeId}`);
+                const dealResponse = await this.client.createDeal(dealData);
+                await this.changeTracker.recordResponse(dealChangeId, dealResponse);
+
+                const dealId = dealResponse.deal?.id;
+                console.log(`✅ Created Child Deal: ${dealId} (${dealData.name})`);
+                console.log(`🛡️ Deal change tracked as: ${dealChangeId}`);
+
+                // STEP 3: Add Note to Contact
+                const notes = leadData.notes || leadData.Notes || '';
+                const noteContent = `New lead from pre-sales system
+Child Name: ${leadData.childName || leadData['Child Name'] || 'Unknown'}
+Source: ${leadData.sourceTag || leadData['Source Tag'] || 'Unknown'}
+Timestamp: ${leadData.timestamp || leadData.Timestamp || 'Unknown'}
+${notes ? `\nNotes: ${notes}` : ''}
+
+TRACKING: Contact ${contactChangeId} | Deal ${dealChangeId}`;
+
+                await this.addContactNote(contactId, noteContent);
+            }
+
+            return contactId;
+
         } catch (error) {
+            // 🛡️ SAFETY: Record failed operation
+            if (typeof changeId !== 'undefined') {
+                await this.changeTracker.recordError(changeId, error);
+            }
+
             if (error.message.includes('API_PERMISSION_DENIED')) {
                 console.warn(`Cannot create contact: API permissions insufficient`);
                 this.syncStats.skipped++;
+                return null;
             } else {
+                console.error(`Failed to create contact:`, error.message);
+                this.syncStats.errors++;
                 throw error;
             }
         }
     }
 
     /**
-     * Add note to contact
+     * Add note to contact using Notes API
      * @param {string} contactId - FreshSales contact ID
-     * @param {Object} noteData - Note data
+     * @param {string|Object} noteData - Note content or data object
      */
     async addContactNote(contactId, noteData) {
         try {
-            const activityData = this.mapper.mapNoteToActivity(contactId, noteData);
-            await this.client.createActivity(activityData);
+            const noteContent = typeof noteData === 'string' ? noteData : noteData.content || noteData.description || '';
+
+            if (!noteContent) {
+                console.warn('No note content provided, skipping');
+                return;
+            }
+
+            await this.client.createNote(contactId, noteContent);
+            console.log(`✅ Added note to contact ${contactId}`);
         } catch (error) {
-            console.warn(`Failed to add note to contact ${contactId}:`, error.message);
+            console.warn(`⚠️  Failed to add note to contact ${contactId}:`, error.message);
+            // Non-blocking - note failure doesn't stop sync
         }
     }
 
@@ -346,13 +514,18 @@ class FreshSalesSync {
                 throw new Error('Master sheet ID not configured');
             }
 
-            const doc = new GoogleSpreadsheet(this.masterSheetId);
-
-            // Load service account credentials
+            // Load service account credentials with v5 authentication pattern
+            let authClient = null;
             if (this.serviceAccountFile) {
                 const serviceAccountInfo = JSON.parse(await fs.readFile(this.serviceAccountFile, 'utf8'));
-                await doc.useServiceAccountAuth(serviceAccountInfo);
+                authClient = new JWT({
+                    email: serviceAccountInfo.client_email,
+                    key: serviceAccountInfo.private_key,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+                });
             }
+
+            const doc = new GoogleSpreadsheet(this.masterSheetId, authClient);
 
             await doc.loadInfo();
             const sheet = doc.sheetsByIndex[0]; // Assume first sheet
@@ -361,10 +534,10 @@ class FreshSalesSync {
             // Convert rows to lead data
             const leads = rows.map(row => {
                 const leadData = {};
-                Object.keys(row._rawData).forEach((key, index) => {
-                    const headerValue = sheet.headerValues[index];
-                    if (headerValue) {
-                        leadData[headerValue] = row[headerValue];
+                // Use _rawData array with header mapping since row[headerName] is not working
+                sheet.headerValues.forEach((headerValue, index) => {
+                    if (headerValue && row._rawData && row._rawData[index] !== undefined) {
+                        leadData[headerValue] = row._rawData[index];
                     }
                 });
                 return leadData;
@@ -385,6 +558,18 @@ class FreshSalesSync {
                 filteredLeads = filteredLeads.filter(lead => {
                     const status = lead['Interest Level'] || lead.interestLevel;
                     return status?.toLowerCase().includes(options.status.toLowerCase());
+                });
+            }
+
+            // TIP Requirement: Only sync records with status "Warm|Hot|Not Interested"
+            if (options.syncEligibleOnly) {
+                const syncEligibleStatuses = ['warm', 'hot', 'not interested'];
+                filteredLeads = filteredLeads.filter(lead => {
+                    const status = (lead.Status || lead.status || lead['Interest Level'] || '').toLowerCase();
+                    const crmLink = lead.crm_contact_link || lead['CRM Contact Link'] || lead.crmContactLink;
+                    // Exclude records that already have CRM links (already synced)
+                    const notAlreadySynced = !crmLink || crmLink === '';
+                    return syncEligibleStatuses.includes(status) && notAlreadySynced;
                 });
             }
 
@@ -433,13 +618,18 @@ class FreshSalesSync {
                 throw new Error('Master sheet ID not configured');
             }
 
-            const doc = new GoogleSpreadsheet(this.masterSheetId);
-
-            // Load service account credentials
+            // Load service account credentials with v5 authentication pattern
+            let authClient = null;
             if (this.serviceAccountFile) {
                 const serviceAccountInfo = JSON.parse(await fs.readFile(this.serviceAccountFile, 'utf8'));
-                await doc.useServiceAccountAuth(serviceAccountInfo);
+                authClient = new JWT({
+                    email: serviceAccountInfo.client_email,
+                    key: serviceAccountInfo.private_key,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+                });
             }
+
+            const doc = new GoogleSpreadsheet(this.masterSheetId, authClient);
 
             await doc.loadInfo();
             const sheet = doc.sheetsByIndex[0]; // Assume first sheet
@@ -475,11 +665,16 @@ class FreshSalesSync {
         try {
             // Load sheet if not provided
             if (!sheet || !rows) {
-                const doc = new GoogleSpreadsheet(this.masterSheetId);
+                let authClient = null;
                 if (this.serviceAccountFile) {
                     const serviceAccountInfo = JSON.parse(await fs.readFile(this.serviceAccountFile, 'utf8'));
-                    await doc.useServiceAccountAuth(serviceAccountInfo);
+                    authClient = new JWT({
+                        email: serviceAccountInfo.client_email,
+                        key: serviceAccountInfo.private_key,
+                        scopes: ['https://www.googleapis.com/auth/spreadsheets']
+                    });
                 }
+                const doc = new GoogleSpreadsheet(this.masterSheetId, authClient);
                 await doc.loadInfo();
                 sheet = doc.sheetsByIndex[0];
                 rows = await sheet.getRows();

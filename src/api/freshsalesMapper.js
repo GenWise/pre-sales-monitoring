@@ -30,21 +30,32 @@ class FreshSalesMapper {
             'Lost': 402000446651
         };
 
+        // TIP Interest Level Mappings (Master Sheet → FreshSales)
+        this.interestLevelMap = {
+            'High': 402000446647,    // Maps to Hot
+            'Medium': 402000446648,  // Maps to Warm
+            'Low': 402000769051      // Maps to Tepid
+        };
+
         // Reverse mapping for status display
         this.statusIdToName = Object.fromEntries(
             Object.entries(this.contactStatusMap).map(([name, id]) => [id, name])
         );
 
-        // Lead source mappings (based on typical FreshSales configuration)
+        // Lead source mappings (FreshSales requires numeric IDs)
         this.leadSourceMap = {
-            'Website': 'Web',
-            'Google Form': 'Web',
-            'Contact Form': 'Web',
-            'Email': 'Email',
-            'Phone': 'Phone',
-            'Referral': 'Referral',
-            'Social Media': 'Social Media',
-            'Advertisement': 'Advertisement'
+            'Website': 402000691518,        // Web
+            'Google Form': 402000691518,    // Web
+            'Contact Form': 402000691518,   // Web
+            'website': 402000691518,        // Web
+            'returning_students': 402000691518, // Web
+            'ats_qualifiers': 402000691518, // Web
+            'early_bird': 402000691518,     // Web
+            'Email': 402000691520,          // Email
+            'Phone': 402000691522,          // Phone (if exists)
+            'Referral': 402000691521,       // Referral (if exists)
+            'Social Media': 402000691519,   // Organic Search (closest match)
+            'Advertisement': 402000691519   // Organic Search (closest match)
         };
 
         // Activity types for notes/follow-ups
@@ -61,36 +72,42 @@ class FreshSalesMapper {
 
     /**
      * Map master database lead data to FreshSales contact format
+     * CRITICAL: Contact = Parent entity (parent_name → first_name/last_name)
      * @param {Object} leadData - Lead data from master database
      * @returns {Object} FreshSales contact data
      */
     mapLeadToContact(leadData) {
         try {
-            // Parse child name if it's in a single field
-            const { firstName, lastName } = this.parseFullName(leadData.childName || leadData['Child Name'] || '');
+            // CONTACT = PARENT: Parse parent name (not child name)
+            const { firstName, lastName } = this.parseFullName(
+                leadData.parentName || leadData['Parent Name'] || leadData.parent_name || ''
+            );
 
             // Prepare base contact data
             const contactData = {
-                // Basic information
+                // Basic information - PARENT details
                 first_name: firstName,
                 last_name: lastName,
 
                 // Email - FreshSales expects array format
-                emails: this.formatEmailField(leadData.parentEmail || leadData['Parent Email']),
+                emails: this.formatEmailField(
+                    leadData.parentEmail || leadData['Parent Email'] || leadData.parent_email
+                ),
 
                 // Mobile number
-                mobile_number: this.formatPhoneNumber(leadData.parentMobile || leadData['Parent Mobile']),
+                mobile_number: this.formatPhoneNumber(
+                    leadData.parentMobile || leadData['Parent Mobile'] || leadData.parent_mobile
+                ),
 
-                // Contact status based on interest level
-                contact_status_id: this.mapInterestLevel(leadData.interestLevel || leadData['Interest Level']),
+                // Contact status based on actual status field (not interest level)
+                contact_status_id: this.mapStatusToContactStatus(
+                    leadData.status || leadData.Status || leadData['Status']
+                ),
 
-                // Lead source
-                lead_source_id: this.mapLeadSource(leadData.source || 'Website'),
+                // Lead source - use last_source text field (lead_source_id is read-only)
+                last_source: 'Web Form',
 
-                // Description/notes
-                description: this.buildDescription(leadData),
-
-                // Tags
+                // Tags - gsp2026_* format for source tracking
                 tags: this.buildTags(leadData)
             };
 
@@ -107,6 +124,16 @@ class FreshSalesMapper {
                 contactData.country = leadData.geography || leadData['Geography'];
             }
 
+            // Parent owner assignment (cf_parent_owner)
+            // CRITICAL: FreshSales dropdown accepts text values ONLY, not numeric IDs
+            if (leadData.assignedOwner || leadData['Assigned Owner'] || leadData.assigned_owner) {
+                const owner = (leadData.assignedOwner || leadData['Assigned Owner'] || leadData.assigned_owner).trim();
+                // Validate against exact dropdown values
+                if (['Agnes', 'Ashish', 'Eklavya', 'Kevin'].includes(owner)) {
+                    contactData.cf_parent_owner = owner;
+                }
+            }
+
             // Remove null/undefined values
             Object.keys(contactData).forEach(key => {
                 if (contactData[key] === null || contactData[key] === undefined || contactData[key] === '') {
@@ -118,6 +145,38 @@ class FreshSalesMapper {
         } catch (error) {
             console.error('Error mapping lead to contact:', error.message);
             throw new Error(`Field mapping failed: ${error.message}`);
+        }
+    }
+
+    /**
+     * Map master database lead data to FreshSales deal format
+     * CRITICAL: Deal = Child entity (child_name → deal name)
+     * @param {Object} leadData - Lead data from master database
+     * @param {string} contactId - Parent contact ID
+     * @returns {Object} FreshSales deal data
+     */
+    mapLeadToDeal(leadData, contactId) {
+        try {
+            const childName = leadData.childName || leadData['Child Name'] || leadData.child_name || 'Unnamed Child';
+
+            const dealData = {
+                // Deal name = child name
+                name: childName,
+
+                // Link to parent contact (CRITICAL: use contacts_added_list, not contacts)
+                contacts_added_list: [contactId],
+
+                // Deal pipeline - Child Lifecycle (402000049629)
+                deal_pipeline_id: 402000049629,
+
+                // Deal stage - default to New (402000347606)
+                deal_stage_id: 402000347606
+            };
+
+            return dealData;
+        } catch (error) {
+            console.error('Error mapping lead to deal:', error.message);
+            throw new Error(`Deal mapping failed: ${error.message}`);
         }
     }
 
@@ -225,6 +284,11 @@ class FreshSalesMapper {
             return '';
         }
 
+        // Handle spreadsheet errors
+        if (phone.includes('#ERROR!') || phone.includes('ERROR')) {
+            return '';
+        }
+
         // Remove all non-digit characters except +
         let cleaned = phone.replace(/[^\d+]/g, '');
 
@@ -237,18 +301,18 @@ class FreshSalesMapper {
     }
 
     /**
-     * Map interest level to FreshSales contact status ID
-     * @param {string} interestLevel - Interest level from master database
+     * Map status to FreshSales contact status ID
+     * @param {string} status - Status from master database (Warm, Hot, Not Interested)
      * @returns {number} FreshSales contact status ID
      */
-    mapInterestLevel(interestLevel) {
-        if (!interestLevel || typeof interestLevel !== 'string') {
+    mapStatusToContactStatus(status) {
+        if (!status || typeof status !== 'string') {
             return this.contactStatusMap['New']; // Default to New
         }
 
-        const normalized = interestLevel.trim();
+        const normalized = status.trim();
 
-        // Direct mapping
+        // Direct mapping: Status field values → FreshSales contact_status_id
         if (this.contactStatusMap[normalized]) {
             return this.contactStatusMap[normalized];
         }
@@ -256,20 +320,14 @@ class FreshSalesMapper {
         // Fuzzy matching for common variations
         const lowerCase = normalized.toLowerCase();
 
-        if (lowerCase.includes('hot') || lowerCase.includes('very interested')) {
-            return this.contactStatusMap['Hot'];
-        }
-        if (lowerCase.includes('warm') || lowerCase.includes('somewhat interested')) {
+        if (lowerCase.includes('warm')) {
             return this.contactStatusMap['Warm'];
         }
-        if (lowerCase.includes('interested')) {
-            return this.contactStatusMap['Interested'];
+        if (lowerCase.includes('hot')) {
+            return this.contactStatusMap['Hot'];
         }
-        if (lowerCase.includes('not interested') || lowerCase.includes('no')) {
+        if (lowerCase.includes('not interested')) {
             return this.contactStatusMap['Not Interested'];
-        }
-        if (lowerCase.includes('cold')) {
-            return this.contactStatusMap['Cold'];
         }
 
         // Default to New if no match
@@ -277,17 +335,51 @@ class FreshSalesMapper {
     }
 
     /**
-     * Map lead source to FreshSales lead source
+     * Map interest level to FreshSales contact status ID (DEPRECATED - use mapStatusToContactStatus)
+     * @param {string} interestLevel - Interest level from master database
+     * @returns {number} FreshSales contact status ID
+     */
+    mapInterestLevel(interestLevel) {
+        if (!interestLevel || typeof interestLevel !== 'string') {
+            return this.interestLevelMap['Medium']; // Default to Medium
+        }
+
+        const normalized = interestLevel.trim();
+
+        // TIP Direct mapping: High|Medium|Low → FreshSales contact_status_id
+        if (this.interestLevelMap[normalized]) {
+            return this.interestLevelMap[normalized];
+        }
+
+        // Fuzzy matching for common variations
+        const lowerCase = normalized.toLowerCase();
+
+        if (lowerCase.includes('high') || lowerCase.includes('hot') || lowerCase.includes('very interested')) {
+            return this.interestLevelMap['High'];
+        }
+        if (lowerCase.includes('medium') || lowerCase.includes('warm') || lowerCase.includes('somewhat interested')) {
+            return this.interestLevelMap['Medium'];
+        }
+        if (lowerCase.includes('low') || lowerCase.includes('cold') || lowerCase.includes('not very interested')) {
+            return this.interestLevelMap['Low'];
+        }
+
+        // Default to New if no match
+        return this.contactStatusMap['New'];
+    }
+
+    /**
+     * Map lead source to FreshSales lead source ID
      * @param {string} source - Source from master database
-     * @returns {string} FreshSales lead source
+     * @returns {number} FreshSales lead source ID
      */
     mapLeadSource(source) {
         if (!source || typeof source !== 'string') {
-            return 'Web'; // Default
+            return 402000691518; // Default to Web
         }
 
         const normalized = source.trim();
-        return this.leadSourceMap[normalized] || 'Web';
+        return this.leadSourceMap[normalized] || 402000691518; // Default to Web
     }
 
     /**
@@ -323,15 +415,23 @@ class FreshSalesMapper {
 
     /**
      * Build tags array from lead data
+     * Uses gsp2026_* format for source tracking
      * @param {Object} leadData - Lead data
      * @returns {Array} Tags array
      */
     buildTags(leadData) {
         const tags = [];
 
-        // Add source as tag
-        if (leadData.source) {
-            tags.push(`source:${leadData.source.toLowerCase().replace(/\s+/g, '_')}`);
+        // Add source tag in gsp2026_* format
+        const sourceTag = leadData.sourceTag || leadData['Source Tag'] || leadData.source_tag;
+        if (sourceTag) {
+            const sourceMap = {
+                'website': 'gsp2026_website_form',
+                'returning_students': 'gsp2026_returning_students_form',
+                'ats_qualifiers': 'gsp2026_ats_qualifiers_form',
+                'early_bird': 'gsp2026_early_bird_form'
+            };
+            tags.push(sourceMap[sourceTag] || `gsp2026_${sourceTag}_form`);
         }
 
         // Add program as tag
@@ -397,17 +497,17 @@ class FreshSalesMapper {
     createSearchCriteria(leadData) {
         const criteria = {};
 
-        const email = leadData.parentEmail || leadData['Parent Email'];
+        const email = leadData.parentEmail || leadData['Parent Email'] || leadData.parent_email;
         if (email && this.isValidEmail(email.trim())) {
             criteria.email = email.trim().toLowerCase();
         }
 
-        const mobile = leadData.parentMobile || leadData['Parent Mobile'];
+        const mobile = leadData.parentMobile || leadData['Parent Mobile'] || leadData.parent_mobile;
         if (mobile) {
             criteria.mobile = this.formatPhoneNumber(mobile);
         }
 
-        const childName = leadData.childName || leadData['Child Name'];
+        const childName = leadData.childName || leadData['Child Name'] || leadData.child_name;
         if (childName) {
             const { firstName, lastName } = this.parseFullName(childName);
             if (firstName) criteria.firstName = firstName;

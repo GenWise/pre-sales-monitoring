@@ -11,7 +11,7 @@
  * - Search functionality available but limited
  */
 
-const https = require('https');
+const axios = require('axios');
 
 class FreshSalesClient {
     constructor(config = {}) {

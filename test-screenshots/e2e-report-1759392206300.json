@@ -1,0 +1,48 @@
+{
+  "testName": "Pre-sales Monitoring E2E Test",
+  "timestamp": "2025-10-02T08:03:26.300Z",
+  "duration": "76470ms",
+  "success": false,
+  "testData": {
+    "childName": "E2E Test Child",
+    "parentName": "E2E Test Parent",
+    "email": "e2e.test@automation.com",
+    "mobile": "9876543210",
+    "interest": "High"
+  },
+  "baselineLeadCount": null,
+  "steps": [
+    "[2025-10-02T08:02:12.357Z] Browser launched successfully",
+    "[2025-10-02T08:02:12.369Z] Step 1: Navigate to Google Form",
+    "[2025-10-02T08:02:17.253Z] 📸 Screenshot saved: 01-form-loaded-1759392137158.png",
+    "[2025-10-02T08:02:17.253Z] ✓ Form loaded successfully",
+    "[2025-10-02T08:02:17.253Z] Step 2: Get baseline lead count",
+    "[2025-10-02T08:02:17.282Z] ⚠ API unavailable, skipping baseline check: fetch failed",
+    "[2025-10-02T08:02:17.282Z] Step 3: Fill child name field",
+    "[2025-10-02T08:02:17.295Z] ✓ Child name filled: E2E Test Child",
+    "[2025-10-02T08:02:17.295Z] Step 4: Fill parent name field",
+    "[2025-10-02T08:02:19.311Z] ✓ Parent name filled: E2E Test Parent",
+    "[2025-10-02T08:02:19.312Z] Step 5: Fill email field",
+    "[2025-10-02T08:02:21.341Z] ✓ Email filled: e2e.test@automation.com",
+    "[2025-10-02T08:02:21.341Z] Step 6: Fill mobile field",
+    "[2025-10-02T08:02:23.367Z] ✓ Mobile filled: 9876543210",
+    "[2025-10-02T08:02:23.367Z] Step 7: Select high interest level",
+    "[2025-10-02T08:02:24.445Z] ✓ High interest level selected",
+    "[2025-10-02T08:02:24.581Z] 📸 Screenshot saved: 02-form-filled-1759392144445.png",
+    "[2025-10-02T08:02:24.581Z] Step 8: Submit form",
+    "[2025-10-02T08:02:25.549Z] ✓ Submit button clicked",
+    "[2025-10-02T08:02:25.549Z] Step 9: Wait for submission confirmation",
+    "[2025-10-02T08:03:25.739Z] 📸 Screenshot saved: 03-submission-failed-1759392205563.png",
+    "[2025-10-02T08:03:25.742Z] ✗ No confirmation message: page.waitForSelector: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=\"Your response has been recorded\"') to be visible\u001b[22m\n",
+    "[2025-10-02T08:03:25.748Z] Step 10: Verify API lead count increase",
+    "[2025-10-02T08:03:25.748Z] ⚠ Skipping API verification (baseline unavailable)",
+    "[2025-10-02T08:03:25.748Z] ❌ E2E Test FAILED",
+    "[2025-10-02T08:03:26.300Z] Browser closed"
+  ],
+  "errors": [],
+  "screenshots": [
+    "01-form-loaded-1759392137158.png",
+    "02-form-filled-1759392144445.png",
+    "03-submission-failed-1759392205563.png"
+  ]
+}

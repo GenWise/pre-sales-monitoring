@@ -8,17 +8,17 @@
  * These are the exact column names in the Google Sheet
  */
 const MASTER_FIELDS = {
-    CHILD_NAME: 'Child Name',
-    PARENT_NAME: 'Parent Name',
-    PARENT_EMAIL: 'Parent Email',
-    PARENT_MOBILE: 'Parent Mobile',
-    INTEREST_LEVEL: 'Interest Level',
-    SOURCE_TAG: 'Source Tag',
-    TIMESTAMP: 'Timestamp',
-    DUPLICATE_FLAG: 'Duplicate Flag',
-    STATUS: 'Status',
-    ASSIGNED_OWNER: 'Assigned Owner',
-    NOTES: 'Notes'
+    CHILD_NAME: 'child_name',
+    PARENT_NAME: 'parent_name',
+    PARENT_EMAIL: 'parent_email',
+    PARENT_MOBILE: 'parent_mobile',
+    INTEREST_LEVEL: 'interest_level',
+    SOURCE_TAG: 'source_tag',
+    TIMESTAMP: 'timestamp',
+    DUPLICATE_FLAG: 'duplicate_flag',
+    STATUS: 'status',
+    ASSIGNED_OWNER: 'assigned_owner',
+    NOTES: 'notes'
 };
 
 /**
@@ -380,24 +380,24 @@ const FormMappingUtils = {
     formatForMasterDatabase(mappedData) {
         const formatted = {};
 
-        // Map from master field names to the camelCase format used by masterDatabase.js
+        // Map from master field names to the snake_case format used by masterDatabase.js
         const fieldNameMapping = {
-            [MASTER_FIELDS.CHILD_NAME]: 'childName',
-            [MASTER_FIELDS.PARENT_NAME]: 'parentName',
-            [MASTER_FIELDS.PARENT_EMAIL]: 'parentEmail',
-            [MASTER_FIELDS.PARENT_MOBILE]: 'parentMobile',
-            [MASTER_FIELDS.INTEREST_LEVEL]: 'interestLevel',
-            [MASTER_FIELDS.SOURCE_TAG]: 'sourceTag',
+            [MASTER_FIELDS.CHILD_NAME]: 'child_name',
+            [MASTER_FIELDS.PARENT_NAME]: 'parent_name',
+            [MASTER_FIELDS.PARENT_EMAIL]: 'parent_email',
+            [MASTER_FIELDS.PARENT_MOBILE]: 'parent_mobile',
+            [MASTER_FIELDS.INTEREST_LEVEL]: 'interest_level',
+            [MASTER_FIELDS.SOURCE_TAG]: 'source_tag',
             [MASTER_FIELDS.TIMESTAMP]: 'timestamp',
             [MASTER_FIELDS.STATUS]: 'status',
-            [MASTER_FIELDS.ASSIGNED_OWNER]: 'assignedOwner',
+            [MASTER_FIELDS.ASSIGNED_OWNER]: 'assigned_owner',
             [MASTER_FIELDS.NOTES]: 'notes'
         };
 
         Object.keys(mappedData).forEach(masterField => {
-            const camelCaseField = fieldNameMapping[masterField];
-            if (camelCaseField) {
-                formatted[camelCaseField] = mappedData[masterField];
+            const snakeCaseField = fieldNameMapping[masterField];
+            if (snakeCaseField) {
+                formatted[snakeCaseField] = mappedData[masterField];
             }
         });
 

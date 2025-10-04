@@ -1,0 +1,62 @@
+Update
+
+1. child_name - first create a new contact (“Parent”) below, and then create a new deal (“child”) under this contact (“Parent”)  
+2. parent_name - First name under contacts
+3. parent_email - Emails[0] under contacts
+4. parent_mobile - Mobile under contacts 
+5. new_existing  - will not go into the CRM
+6. interest_level - will not go to the CRM
+7. source_tag - update lead_source_id (web is only for website, can we add new lead_source_id) and tags (exact content of source_tag)
+8. timestamp - will not go to the CRM
+9. duplicate_flag - will not go to the CRM
+10. status (First Call Pending, Warm, Hot,Not Interested) - update contact_status_id
+11. assignedowner (kevin, agnes, eklavya, ashish) - assigned to cf_parent_owner
+12. notes - update as below
+
+
+Notes Updation
+
+To programmatically add a note to a contact via the Freshsales API, you would use the Notes API endpoint.
+Programmatically Adding a Note to a Contact via Freshsales API:
+You can create a new note and associate it with a contact using a POST request to the /api/notes endpoint.
+
+Authentication: You will need your Freshsales API key for authentication, typically included in the Authorization header.
+Request URL:
+
+Code
+
+https://.freshsales.io/api/notes
+
+Replace <your_domain> with your Freshsales account's subdomain. Request Body (JSON).
+The request body should contain the note details and the ID of the contact it should be associated with.
+Code
+
+{
+"note": {
+"description": "This is a new note for the contact.",
+"targetable_id": <contact_id>,
+"targetable_type": "Contact"
+}
+}
+
+description: The content of your note.
+targetable_id: The unique ID of the contact you want to add the note to.
+targetable_type: This must be "Contact" to associate the note with a contact.
+
+Example using cURL:
+Code
+
+curl -X POST 'https://.freshsales.io/api/notes' \
+-H 'Authorization: Token token=<your_api_key>' \
+-H 'Content-Type: application/json' \
+-d '{
+"note": {
+"description": "Discussed product features and next steps.",
+"targetable_id": 402082323753,
+"targetable_type": "Contact"
+}
+}‘
+
+Replace <your_domain> and <your_api_key> with your actual Freshsales domain and API key, and <contact_id> with the ID of the specific contact.
+--------------------------------------
+

@@ -1,0 +1,33 @@
+{
+  "testName": "Pre-sales Monitoring E2E Test",
+  "timestamp": "2025-10-02T07:50:52.576Z",
+  "duration": "16760ms",
+  "success": false,
+  "testData": {
+    "childName": "E2E Test Child",
+    "parentName": "E2E Test Parent",
+    "email": "e2e.test@automation.com",
+    "mobile": "9876543210",
+    "interest": "High"
+  },
+  "baselineLeadCount": 38,
+  "steps": [
+    "[2025-10-02T07:50:38.431Z] Browser launched successfully",
+    "[2025-10-02T07:50:38.437Z] Step 1: Navigate to Google Form",
+    "[2025-10-02T07:50:42.588Z] 📸 Screenshot saved: 01-form-loaded-1759391442480.png",
+    "[2025-10-02T07:50:42.588Z] ✓ Form loaded successfully",
+    "[2025-10-02T07:50:42.588Z] Step 2: Get baseline lead count",
+    "[2025-10-02T07:50:44.017Z] ✓ Baseline lead count: 38",
+    "[2025-10-02T07:50:44.017Z] Step 3: Fill child name field",
+    "[2025-10-02T07:50:52.028Z] 💥 Fatal error: None of the selectors found: input[aria-label*=\"Child\"], input[aria-label*=\"child\"], input[aria-label*=\"Student\"], input[aria-label*=\"Kid\"]",
+    "[2025-10-02T07:50:52.120Z] 📸 Screenshot saved: error-state-1759391452029.png",
+    "[2025-10-02T07:50:52.576Z] Browser closed"
+  ],
+  "errors": [
+    "None of the selectors found: input[aria-label*=\"Child\"], input[aria-label*=\"child\"], input[aria-label*=\"Student\"], input[aria-label*=\"Kid\"]"
+  ],
+  "screenshots": [
+    "01-form-loaded-1759391442480.png",
+    "error-state-1759391452029.png"
+  ]
+}

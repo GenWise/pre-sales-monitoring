@@ -188,7 +188,7 @@ class APIsAndDeploymentManager {
             dropdownValues.interestLevel = ['High', 'Medium', 'Low'];
         }
         if (dropdownValues.sourceTag.length === 0) {
-            dropdownValues.sourceTag = ['returning_students', 'ats_qualifiers', 'website', 'early_bird', 'summer_program_2026'];
+            dropdownValues.sourceTag = ['returning_students', 'ats_qualifiers'', 'website'', 'early_bird'];
         }
         if (dropdownValues.assignedOwner.length === 0) {
             dropdownValues.assignedOwner = ['Unassigned', 'Rajesh', 'Team Member'];
