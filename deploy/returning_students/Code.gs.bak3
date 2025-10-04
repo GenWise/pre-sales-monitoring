@@ -85,7 +85,7 @@ const RETURNING_STUDENTS_CONFIG = {
         'timestamp': MASTER_FIELDS.TIMESTAMP,
     },
     defaultValues: {
-        [MASTER_FIELDS.NEW_EXISTING]: 'New Parent',
+        [MASTER_FIELDS.STATUS]: 'New Parent',
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
         [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
     },

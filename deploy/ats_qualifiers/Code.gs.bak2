@@ -1,22 +1,22 @@
 /**
- * Google Apps Script for returning_students - Master Sheet Integration
- * Deploy this script specifically to returning_students: 1mHTbp510IlULY5FkXXRuu8M3t1UiceLEkOr4gp_VSDA
+ * Google Apps Script for ats_qualifiers - Master Sheet Integration
+ * Deploy this script specifically to ats_qualifiers: 1gGyfmy4NmEgAdZrbex0ffoqGlI1B_LuRUfzvQeOCHCQ
  *
  * CRITICAL: This script includes validation to REJECT submissions that don't match
  * exact dropdown values in the master sheet.
  *
  * DEPLOYMENT INSTRUCTIONS:
  * 1. Open https://script.google.com
- * 2. Create new project: "returning_students-MasterSheet-Integration"
+ * 2. Create new project: "ats_qualifiers-MasterSheet-Integration"
  * 3. Replace default code with this file
  * 4. Save project (Ctrl+S)
  * 5. Run setupTrigger() function once
  * 6. Test with testIntegration() function
  */
 
-// RETURNING_STUDENTS CONFIGURATION - DO NOT CHANGE
+// ATS_QUALIFIERS CONFIGURATION - DO NOT CHANGE
 const MASTER_SHEET_ID = '1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ';
-const FORM_SOURCE_TAG = 'returning_students';
+const FORM_SOURCE_TAG = 'ats_qualifiers';
 const SLACK_WEBHOOK_URL = 'REDACTED_SLACK_WEBHOOK';
 const EMAIL_RECIPIENTS = 'rajesh@genwise.in';
 
@@ -41,55 +41,45 @@ const MASTER_FIELDS = {
     DUPLICATE_FLAG: 'duplicate_flag',
     STATUS: 'status',
     ASSIGNED_OWNER: 'assigned_owner',
-    NEW_EXISTING: 'new_existing',
-    CRM_CONTACT_LINK: 'crm_contact_link',    NOTES: 'notes'
+    NOTES: 'notes'
 };
 
-// RETURNING_STUDENTS SPECIFIC CONFIGURATION
-const RETURNING_STUDENTS_CONFIG = {
-    sourceTag: 'returning_students',
+// ATS_QUALIFIERS SPECIFIC CONFIGURATION
+const ATS_QUALIFIERS_CONFIG = {
+    sourceTag: 'ats_qualifiers',
     fieldMapping: {
         // Child name variations
         'child_name': MASTER_FIELDS.CHILD_NAME,
-        'Child\'s Name': MASTER_FIELDS.CHILD_NAME,
         'Student Name': MASTER_FIELDS.CHILD_NAME,
-        'Name of Child': MASTER_FIELDS.CHILD_NAME,
+        'Name': MASTER_FIELDS.CHILD_NAME,
 
         // Parent name variations
         'parent_name': MASTER_FIELDS.PARENT_NAME,
-        'Parent\'s Name': MASTER_FIELDS.PARENT_NAME,
         'Guardian Name': MASTER_FIELDS.PARENT_NAME,
-        'Father\'s Name': MASTER_FIELDS.PARENT_NAME,
-        'Mother\'s Name': MASTER_FIELDS.PARENT_NAME,
+        'Contact Person': MASTER_FIELDS.PARENT_NAME,
 
         // Email variations
-        'parent_email': MASTER_FIELDS.PARENT_EMAIL,
-        'Email Address': MASTER_FIELDS.PARENT_EMAIL,
         'Email': MASTER_FIELDS.PARENT_EMAIL,
-        'Guardian Email': MASTER_FIELDS.PARENT_EMAIL,
+        'Email Address': MASTER_FIELDS.PARENT_EMAIL,
+        'Contact Email': MASTER_FIELDS.PARENT_EMAIL,
 
         // Mobile variations
-        'parent_mobile': MASTER_FIELDS.PARENT_MOBILE,
-        'Mobile Number': MASTER_FIELDS.PARENT_MOBILE,
-        'Phone Number': MASTER_FIELDS.PARENT_MOBILE,
-        'Contact Number': MASTER_FIELDS.PARENT_MOBILE,
         'Mobile': MASTER_FIELDS.PARENT_MOBILE,
+        'Contact Number': MASTER_FIELDS.PARENT_MOBILE,
         'Phone': MASTER_FIELDS.PARENT_MOBILE,
 
         // Interest level variations
         'interest_level': MASTER_FIELDS.INTEREST_LEVEL,
-        'Level of Interest': MASTER_FIELDS.INTEREST_LEVEL,
-        'How interested are you?': MASTER_FIELDS.INTEREST_LEVEL,
-        'Interest': MASTER_FIELDS.INTEREST_LEVEL,
+        'Priority': MASTER_FIELDS.INTEREST_LEVEL,
 
         'timestamp': MASTER_FIELDS.TIMESTAMP,
     },
     defaultValues: {
-        [MASTER_FIELDS.NEW_EXISTING]: 'New Parent',
+        [MASTER_FIELDS.STATUS]: 'New Parent',
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
         [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
     },
-    // RETURNING_STUDENTS SPECIFIC INTEREST LEVEL MAPPINGS - EXACT FORM OPTIONS
+    // ATS_QUALIFIERS SPECIFIC INTEREST LEVEL MAPPINGS
     interestLevelMapping: {
         'Ready to Sign up and save almost 25% through available discounts': 'High',
         'Like to speak to GenWise team to resolve questions on my mind': 'Medium',
@@ -102,7 +92,7 @@ const RETURNING_STUDENTS_CONFIG = {
  */
 function onFormSubmit(e) {
     try {
-        console.log('returning_students submission received, processing...');
+        console.log('ats_qualifiers submission received, processing...');
 
         // Extract form response data
         const response = e.response;
@@ -116,7 +106,7 @@ function onFormSubmit(e) {
         formData.formId = response.getEditResponseUrl().match(/forms\/d\/([a-zA-Z0-9-_]+)/)[1];
 
         // Map and validate the form data
-        const mappedData = mapFormResponse(formData, RETURNING_STUDENTS_CONFIG);
+        const mappedData = mapFormResponse(formData, ATS_QUALIFIERS_CONFIG);
 
         // CRITICAL VALIDATION - REJECT if values don't match allowed dropdown values
         const validationResult = validateDropdownValues(mappedData);
@@ -134,14 +124,14 @@ function onFormSubmit(e) {
         const result = writeToMasterSheet(mappedData);
 
         if (result.success) {
-            console.log('✅ Successfully wrote returning_students data to master database');
+            console.log('✅ Successfully wrote ats_qualifiers data to master database');
             logSuccess(formData, result);
 
             // Send notifications immediately after successful write
             sendEmailNotification(mappedData);
             sendSlackNotification(mappedData);
         } else {
-            console.error('❌ Failed to write returning_students data to master database:', result.error);
+            console.error('❌ Failed to write ats_qualifiers data to master database:', result.error);
             logError(formData, result.error);
         }
 
@@ -195,7 +185,7 @@ function validateDropdownValues(mappedData) {
 function sendValidationFailureNotification(formData, errors) {
     try {
         const emailBody = `
-RETURNING_STUDENTS VALIDATION FAILURE
+ATS_QUALIFIERS VALIDATION FAILURE
 
 Form submission rejected due to invalid dropdown values.
 
@@ -219,7 +209,7 @@ Form: ${FORM_SOURCE_TAG}
         // TODO: Implement email notification if needed
         // MailApp.sendEmail({
         //     to: 'rajesh@genwise.in',
-        //     subject: 'returning_students Validation Failure',
+        //     subject: 'ats_qualifiers Validation Failure',
         //     body: emailBody
         // });
 
@@ -279,7 +269,7 @@ function mapFormResponse(formResponse, formConfig) {
         }
     });
 
-    // Apply returning_students specific interest level mapping
+    // Apply ats_qualifiers specific interest level mapping
     if (mappedData[MASTER_FIELDS.INTEREST_LEVEL] && formConfig.interestLevelMapping) {
         const originalLevel = mappedData[MASTER_FIELDS.INTEREST_LEVEL];
         const mappedLevel = formConfig.interestLevelMapping[originalLevel];
@@ -288,8 +278,8 @@ function mapFormResponse(formResponse, formConfig) {
         }
     }
 
-    // Ensure source tag is set to returning_students
-    mappedData[MASTER_FIELDS.SOURCE_TAG] = 'returning_students';
+    // Ensure source tag is set to ats_qualifiers
+    mappedData[MASTER_FIELDS.SOURCE_TAG] = 'ats_qualifiers';
 
     // Format timestamp
     if (mappedData[MASTER_FIELDS.TIMESTAMP]) {
@@ -337,7 +327,7 @@ function writeToMasterSheet(mappedData) {
         worksheet.appendRow(rowData);
         const insertedRow = worksheet.getLastRow();
 
-        console.log(`✅ returning_students data written to master sheet at row ${insertedRow}`);
+        console.log(`✅ ats_qualifiers data written to master sheet at row ${insertedRow}`);
 
         return {
             success: true,
@@ -558,7 +548,7 @@ function logSuccess(formData, result) {
             masterSheetUrl: result.masterSheetUrl
         };
 
-        console.log('✅ returning_students Success log:', logData);
+        console.log('✅ ats_qualifiers Success log:', logData);
     } catch (error) {
         console.error('Error logging success:', error.toString());
     }
@@ -579,7 +569,7 @@ function logError(formData, error) {
             parentName: getNameFromFormData(formData)
         };
 
-        console.error('❌ returning_students Error log:', logData);
+        console.error('❌ ats_qualifiers Error log:', logData);
 
     } catch (logError) {
         console.error('Error logging error:', logError.toString());
@@ -649,10 +639,10 @@ function setupTrigger() {
             throw new Error('This script must be bound to a Google Form');
         }
 
-        // Verify this is returning_students
-        const expectedFormId = '1mHTbp510IlULY5FkXXRuu8M3t1UiceLEkOr4gp_VSDA';
+        // Verify this is ats_qualifiers
+        const expectedFormId = '1gGyfmy4NmEgAdZrbex0ffoqGlI1B_LuRUfzvQeOCHCQ';
         if (form.getId() !== expectedFormId) {
-            throw new Error(`Wrong form! This script is for returning_students (${expectedFormId}), but attached to ${form.getId()}`);
+            throw new Error(`Wrong form! This script is for ats_qualifiers (${expectedFormId}), but attached to ${form.getId()}`);
         }
 
         // Create form submit trigger
@@ -661,7 +651,7 @@ function setupTrigger() {
             .everyHours(1)
             .create();
 
-        console.log('✅ returning_students trigger set up successfully');
+        console.log('✅ ats_qualifiers trigger set up successfully');
         console.log('Form Title:', form.getTitle());
         console.log('Form ID:', form.getId());
 
@@ -673,35 +663,35 @@ function setupTrigger() {
         };
 
     } catch (error) {
-        console.error('❌ Error setting up returning_students trigger:', error.toString());
+        console.error('❌ Error setting up ats_qualifiers trigger:', error.toString());
         return { success: false, error: error.toString() };
     }
 }
 
 /**
- * Test function to verify returning_students integration
+ * Test function to verify ats_qualifiers integration
  */
 function testIntegration() {
     try {
-        console.log('🧪 Testing returning_students integration...');
+        console.log('🧪 Testing ats_qualifiers integration...');
 
         const sampleData = {
-            'parent_name': 'Test returning_students Parent',
-            'child_name': 'Test returning_students Child',
-            'parent_email': 'test-form1@example.com',
-            'parent_mobile': '+1234567890',
-            'interest_level': 'Very Interested', // This should map to 'High'
-            responseId: 'test-form1-response',
+            'parent_name': 'Test ats_qualifiers Parent',
+            'child_name': 'Test ats_qualifiers Child',
+            'Email': 'test-form2@example.com',
+            'Mobile': '+1234567890',
+            'Priority': 'Urgent', // This should map to 'High'
+            responseId: 'test-form2-response',
             submissionTime: new Date(),
             sourceTag: FORM_SOURCE_TAG,
             timestamp: new Date().toISOString(),
-            formId: '1mHTbp510IlULY5FkXXRuu8M3t1UiceLEkOr4gp_VSDA'
+            formId: '1gGyfmy4NmEgAdZrbex0ffoqGlI1B_LuRUfzvQeOCHCQ'
         };
 
         console.log('Testing with sample data:', sampleData);
 
         // Map the data
-        const mappedData = mapFormResponse(sampleData, RETURNING_STUDENTS_CONFIG);
+        const mappedData = mapFormResponse(sampleData, ATS_QUALIFIERS_CONFIG);
         console.log('Mapped data:', mappedData);
 
         // Validate dropdown values
@@ -719,26 +709,26 @@ function testIntegration() {
         const result = writeToMasterSheet(mappedData);
 
         if (result.success) {
-            console.log('✅ returning_students integration test successful!');
+            console.log('✅ ats_qualifiers integration test successful!');
             return {
                 success: true,
-                message: 'returning_students integration working correctly',
+                message: 'ats_qualifiers integration working correctly',
                 result: result
             };
         } else {
-            console.error('❌ returning_students integration test failed:', result.error);
+            console.error('❌ ats_qualifiers integration test failed:', result.error);
             return {
                 success: false,
-                message: 'returning_students integration test failed',
+                message: 'ats_qualifiers integration test failed',
                 error: result.error
             };
         }
 
     } catch (error) {
-        console.error('❌ returning_students integration test error:', error.toString());
+        console.error('❌ ats_qualifiers integration test error:', error.toString());
         return {
             success: false,
-            message: 'returning_students integration test error',
+            message: 'ats_qualifiers integration test error',
             error: error.toString()
         };
     }

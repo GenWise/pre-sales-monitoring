@@ -29,19 +29,21 @@ const ALLOWED_VALUES = {
     ASSIGNED_OWNER: ['Unassigned', 'Rajesh', 'Team Member']
 };
 
-// Master Database Schema
+// Master Database Schema - SNAKE_CASE column names
 const MASTER_FIELDS = {
-    CHILD_NAME: 'Child Name',
-    PARENT_NAME: 'Parent Name',
-    PARENT_EMAIL: 'Parent Email',
-    PARENT_MOBILE: 'Parent Mobile',
-    INTEREST_LEVEL: 'Interest Level',
-    SOURCE_TAG: 'Source Tag',
-    TIMESTAMP: 'Timestamp',
-    DUPLICATE_FLAG: 'Duplicate Flag',
-    STATUS: 'Status',
-    ASSIGNED_OWNER: 'Assigned Owner',
-    NOTES: 'Notes'
+    CHILD_NAME: 'child_name',
+    PARENT_NAME: 'parent_name',
+    PARENT_EMAIL: 'parent_email',
+    PARENT_MOBILE: 'parent_mobile',
+    NEW_EXISTING: 'new_existing',
+    INTEREST_LEVEL: 'interest_level',
+    SOURCE_TAG: 'source_tag',
+    TIMESTAMP: 'timestamp',
+    DUPLICATE_FLAG: 'duplicate_flag',
+    STATUS: 'status',
+    ASSIGNED_OWNER: 'assigned_owner',
+    NOTES: 'notes',
+    CRM_CONTACT_LINK: 'crm_contact_link'
 };
 
 // WEBSITE SPECIFIC CONFIGURATION
@@ -74,10 +76,11 @@ const WEBSITE_CONFIG = {
         'Interest': MASTER_FIELDS.INTEREST_LEVEL,
         'How likely are you to enroll?': MASTER_FIELDS.INTEREST_LEVEL,
 
-        'Timestamp': MASTER_FIELDS.TIMESTAMP,
+        'Timestamp': MASTER_FIELDS.TIMESTAMP
+
     },
     defaultValues: {
-        [MASTER_FIELDS.STATUS]: 'New Parent',
+        [MASTER_FIELDS.NEW_EXISTING]: 'New Parent',
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
         [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
     },

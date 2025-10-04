@@ -31,17 +31,18 @@ const ALLOWED_VALUES = {
 
 // Master Database Schema
 const MASTER_FIELDS = {
-    CHILD_NAME: 'Child Name',
-    PARENT_NAME: 'Parent Name',
-    PARENT_EMAIL: 'Parent Email',
-    PARENT_MOBILE: 'Parent Mobile',
-    INTEREST_LEVEL: 'Interest Level',
-    SOURCE_TAG: 'Source Tag',
-    TIMESTAMP: 'Timestamp',
-    DUPLICATE_FLAG: 'Duplicate Flag',
-    STATUS: 'Status',
-    ASSIGNED_OWNER: 'Assigned Owner',
-    NOTES: 'Notes'
+    CHILD_NAME: 'child_name',
+    PARENT_NAME: 'parent_name',
+    PARENT_EMAIL: 'parent_email',
+    PARENT_MOBILE: 'parent_mobile',
+    INTEREST_LEVEL: 'interest_level',
+    SOURCE_TAG: 'source_tag',
+    TIMESTAMP: 'timestamp',
+    DUPLICATE_FLAG: 'duplicate_flag',
+    STATUS: 'status',
+    ASSIGNED_OWNER: 'assigned_owner',
+    NEW_EXISTING: 'new_existing',
+    CRM_CONTACT_LINK: 'crm_contact_link',    NOTES: 'notes'
 };
 
 // EARLY_BIRD SPECIFIC CONFIGURATION
@@ -49,18 +50,18 @@ const EARLY_BIRD_CONFIG = {
     sourceTag: 'early_bird',
     fieldMapping: {
         // Child name variations
-        'Child Name': MASTER_FIELDS.CHILD_NAME,
+        'child_name': MASTER_FIELDS.CHILD_NAME,
         'Student Name': MASTER_FIELDS.CHILD_NAME,
         'Learner Name': MASTER_FIELDS.CHILD_NAME,
 
         // Parent name variations
-        'Parent Name': MASTER_FIELDS.PARENT_NAME,
+        'parent_name': MASTER_FIELDS.PARENT_NAME,
         'Guardian': MASTER_FIELDS.PARENT_NAME,
         'Contact Person Name': MASTER_FIELDS.PARENT_NAME,
 
         // Email variations
         'Email': MASTER_FIELDS.PARENT_EMAIL,
-        'Parent Email': MASTER_FIELDS.PARENT_EMAIL,
+        'parent_email': MASTER_FIELDS.PARENT_EMAIL,
 
         // Mobile variations
         'Mobile': MASTER_FIELDS.PARENT_MOBILE,
@@ -68,13 +69,13 @@ const EARLY_BIRD_CONFIG = {
         'Phone Number': MASTER_FIELDS.PARENT_MOBILE,
 
         // Interest level variations
-        'Interest Level': MASTER_FIELDS.INTEREST_LEVEL,
+        'interest_level': MASTER_FIELDS.INTEREST_LEVEL,
         'Urgency': MASTER_FIELDS.INTEREST_LEVEL,
 
-        'Timestamp': MASTER_FIELDS.TIMESTAMP,
+        'timestamp': MASTER_FIELDS.TIMESTAMP,
     },
     defaultValues: {
-        [MASTER_FIELDS.STATUS]: 'New Parent',
+        [MASTER_FIELDS.NEW_EXISTING]: 'New Parent',
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
         [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
     },
@@ -580,7 +581,7 @@ function logError(formData, error) {
  */
 function getEmailFromFormData(formData) {
     const emailFields = [
-        'Email Address', 'Email', 'Parent Email', 'Parent Email Address',
+        'Email Address', 'Email', 'parent_email', 'Parent Email Address',
         'Guardian Email', 'Contact Email', 'Your Email'
     ];
 
@@ -604,7 +605,7 @@ function getEmailFromFormData(formData) {
  */
 function getNameFromFormData(formData) {
     const nameFields = [
-        'Parent Name', 'Parent\'s Name', 'Guardian Name', 'Your Name',
+        'parent_name', 'Parent\'s Name', 'Guardian Name', 'Your Name',
         'Full Name', 'Name', 'Contact Person', 'Father\'s Name', 'Mother\'s Name'
     ];
 
@@ -675,9 +676,9 @@ function testIntegration() {
         console.log('🧪 Testing early_bird integration...');
 
         const sampleData = {
-            'Parent Name': 'Test early_bird Parent',
+            'parent_name': 'Test early_bird Parent',
             'Learner Name': 'Test early_bird Child',
-            'Parent Email': 'test-form4@example.com',
+            'parent_email': 'test-form4@example.com',
             'Contact': '+1234567890',
             'Urgency': 'Immediate', // This should map to 'High'
             responseId: 'test-form4-response',

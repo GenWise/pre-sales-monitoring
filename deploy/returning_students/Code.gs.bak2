@@ -41,8 +41,7 @@ const MASTER_FIELDS = {
     DUPLICATE_FLAG: 'duplicate_flag',
     STATUS: 'status',
     ASSIGNED_OWNER: 'assigned_owner',
-    NEW_EXISTING: 'new_existing',
-    CRM_CONTACT_LINK: 'crm_contact_link',    NOTES: 'notes'
+    NOTES: 'notes'
 };
 
 // RETURNING_STUDENTS SPECIFIC CONFIGURATION
@@ -85,7 +84,7 @@ const RETURNING_STUDENTS_CONFIG = {
         'timestamp': MASTER_FIELDS.TIMESTAMP,
     },
     defaultValues: {
-        [MASTER_FIELDS.NEW_EXISTING]: 'New Parent',
+        [MASTER_FIELDS.STATUS]: 'New Parent',
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
         [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
     },
