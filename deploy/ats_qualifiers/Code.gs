@@ -81,13 +81,9 @@ const ATS_QUALIFIERS_CONFIG = {
     },
     // ATS_QUALIFIERS SPECIFIC INTEREST LEVEL MAPPINGS
     interestLevelMapping: {
-        'Urgent': 'High',
-        'High Priority': 'High',
-        'High': 'High',
-        'Normal': 'Medium',
-        'Medium': 'Medium',
-        'Low Priority': 'Low',
-        'Low': 'Low'
+        'Ready to Sign up and save almost 25% through available discounts': 'High',
+        'Like to speak to GenWise team to resolve questions on my mind': 'Medium',
+        'Not interested in the GenWise Summer Program right now': 'Low'
     }
 };
 

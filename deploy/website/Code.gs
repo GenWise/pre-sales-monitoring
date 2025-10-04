@@ -81,20 +81,11 @@ const WEBSITE_CONFIG = {
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
         [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
     },
-    // WEBSITE SPECIFIC INTEREST LEVEL MAPPINGS
+    // WEBSITE SPECIFIC INTEREST LEVEL MAPPINGS - EXACT FORM OPTIONS
     interestLevelMapping: {
-        'Very interested in the GenWise Summer Program': 'High',
-        'Interested in the GenWise Summer Program': 'High',
-        'Considering the GenWise Summer Program': 'Medium',
-        'Might be interested in the GenWise Summer Program': 'Medium',
-        'Not interested in the GenWise Summer Program right now': 'Low',
-        'Very Likely': 'High',
-        'Definitely': 'High',
-        'Likely': 'High',
-        'Maybe': 'Medium',
-        'Possibly': 'Medium',
-        'Unlikely': 'Low',
-        'Not Sure': 'Low'
+        'Ready to Sign up and save almost 25% through available discounts': 'High',
+        'Like to speak to GenWise team to resolve questions on my mind': 'Medium',
+        'Not interested in the GenWise Summer Program right now': 'Low'
     }
 };
 

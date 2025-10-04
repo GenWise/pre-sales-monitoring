@@ -88,18 +88,11 @@ const RETURNING_STUDENTS_CONFIG = {
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
         [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
     },
-    // RETURNING_STUDENTS SPECIFIC INTEREST LEVEL MAPPINGS
+    // RETURNING_STUDENTS SPECIFIC INTEREST LEVEL MAPPINGS - EXACT FORM OPTIONS
     interestLevelMapping: {
-        'Very High': 'High',
-        'Very Interested': 'High',
-        'High': 'High',
-        'Interested': 'High',
-        'Moderate': 'Medium',
-        'Medium': 'Medium',
-        'Somewhat Interested': 'Medium',
-        'Low': 'Low',
-        'Not Very Interested': 'Low',
-        'Maybe': 'Low'
+        'Ready to Sign up and save almost 25% through available discounts': 'High',
+        'Like to speak to GenWise team to resolve questions on my mind': 'Medium',
+        'Not interested in the GenWise Summer Program right now': 'Low'
     }
 };
 
