@@ -47,8 +47,8 @@ class FreshSalesSyncService {
             environment: process.env.NODE_ENV || 'production',
             batchSize: 10,
             syncInterval: {
-                toFreshSales: '0 * * * *', // Every hour - new leads from sheets
-                fromFreshSales: '0 * * * *', // Every hour - status updates from CRM
+                fromFreshSales: '0 * * * *', // Every hour at :00 - CRM updates FIRST
+                toFreshSales: '5 * * * *', // Every hour at :05 - new leads AFTER (prevents stale data overwrites)
                 healthCheck: '0 */6 * * *'    // Every 6 hours - system health
             },
 
@@ -111,8 +111,8 @@ class FreshSalesSyncService {
             await this.sendSlackNotification(
                 '🚀 FreshSales Sync Service Started',
                 `Service started successfully in ${this.config.environment} mode\n` +
-                `• Sync to FreshSales: ${this.config.syncInterval.toFreshSales}\n` +
-                `• Sync from FreshSales: ${this.config.syncInterval.fromFreshSales}\n` +
+                `• Sync from FreshSales: ${this.config.syncInterval.fromFreshSales} (CRM → Sheets FIRST)\n` +
+                `• Sync to FreshSales: ${this.config.syncInterval.toFreshSales} (Sheets → CRM 5min after)\n` +
                 `• Health checks: ${this.config.syncInterval.healthCheck}`,
                 'good'
             );
