@@ -186,10 +186,23 @@ class FreshSalesSync {
      */
     async processLeadToFreshSales(leadData) {
         try {
-            // Map lead data to FreshSales contact format
-            const contactData = this.mapper.mapLeadToContact(leadData);
+            // Check if crm_contact_link already exists (parent already in CRM)
+            const crmLink = leadData.crm_contact_link || leadData['CRM Contact Link'] || leadData.crmContactLink;
 
-            // Check for existing contact
+            if (crmLink) {
+                // Extract contact ID from link (format: https://genwisecrm.myfreshworks.com/crm/sales/contacts/12345)
+                const contactIdMatch = crmLink.match(/contacts\/(\d+)/);
+                if (contactIdMatch) {
+                    const contactId = contactIdMatch[1];
+                    console.log(`Parent exists in CRM: ${contactId} - checking for child Deal and additive updates`);
+
+                    await this.handleExistingParent(contactId, leadData);
+                    return;
+                }
+            }
+
+            // Normal flow: Check for existing contact by email/mobile
+            const contactData = this.mapper.mapLeadToContact(leadData);
             const existingContact = await this.findExistingContact(leadData);
 
             let contactId = null;
@@ -245,6 +258,20 @@ class FreshSalesSync {
 
             if (targetRow) {
                 targetRow.set('crm_contact_link', crmContactUrl);
+                targetRow.set('last_synced_at', new Date().toISOString());
+                targetRow.set('new_existing', 'Existing Parent');
+
+                // Set light red background color (RGB: 244, 204, 204)
+                await sheet.loadCells();
+                const rowIndex = targetRow.rowNumber - 1; // 0-indexed
+                const numCols = sheet.columnCount;
+
+                for (let col = 0; col < numCols; col++) {
+                    const cell = sheet.getCell(rowIndex, col);
+                    cell.backgroundColor = { red: 244/255, green: 204/255, blue: 204/255 };
+                }
+
+                await sheet.saveUpdatedCells();
                 await targetRow.save();
                 console.log(`✅ Updated Master Sheet with CRM link: ${crmContactUrl}`);
             } else {
@@ -325,8 +352,38 @@ class FreshSalesSync {
 
         switch (this.duplicateStrategy) {
             case 'skip':
-                console.log(`Parent already exists: ${contactId} - Creating child deal only`);
-                this.syncStats.skipped++;
+                console.log(`Parent already exists: ${contactId} - Checking for additive updates`);
+
+                // ADDITIVE UPDATE: Add missing fields without overwriting existing ones
+                try {
+                    const additiveUpdate = await this.buildAdditiveUpdate(existingContact, newContactData);
+
+                    if (Object.keys(additiveUpdate).length > 0) {
+                        const updateChangeId = await this.changeTracker.recordOperation(
+                            'update',
+                            `/contacts/${contactId}`,
+                            { contact: additiveUpdate },
+                            existingContact
+                        );
+
+                        console.log(`🔄 ADDITIVE UPDATE for ${contactId}:`, JSON.stringify(additiveUpdate, null, 2));
+                        const updateResponse = await this.client.updateContact(contactId, additiveUpdate);
+                        await this.changeTracker.recordResponse(updateChangeId, updateResponse);
+
+                        console.log(`✅ Added missing fields to contact ${contactId}`);
+                        this.syncStats.updated++;
+                    } else {
+                        console.log(`No new fields to add for contact ${contactId}`);
+                        this.syncStats.skipped++;
+                    }
+                } catch (error) {
+                    if (error.message.includes('API_PERMISSION_DENIED')) {
+                        console.warn(`Cannot update contact ${contactId}: API permissions insufficient`);
+                        this.syncStats.skipped++;
+                    } else {
+                        throw error;
+                    }
+                }
                 break;
 
             case 'update':
@@ -381,6 +438,138 @@ class FreshSalesSync {
     }
 
     /**
+     * Handle existing parent (crm_contact_link already populated)
+     * - Check if child Deal exists
+     * - If not, create Deal (sibling)
+     * - Always do additive contact updates (secondary email/mobile)
+     * @param {string} contactId - FreshSales contact ID
+     * @param {Object} leadData - Lead data from master sheet
+     */
+    async handleExistingParent(contactId, leadData) {
+        try {
+            const childName = leadData.childName || leadData.child_name || leadData['Child Name'];
+
+            // STEP 1: Check if Deal for this child already exists
+            const existingDeals = await this.client.getContactDeals(contactId);
+            const childDealExists = existingDeals.some(deal =>
+                deal.name === childName || deal.name?.toLowerCase() === childName?.toLowerCase()
+            );
+
+            if (childDealExists) {
+                console.log(`Child Deal "${childName}" already exists for contact ${contactId} - skipping Deal creation`);
+                this.syncStats.skipped++;
+            } else {
+                // STEP 2: Create new Deal (sibling)
+                const dealData = this.mapper.mapLeadToDeal(leadData, contactId);
+                const dealChangeId = await this.changeTracker.recordOperation(
+                    'create',
+                    '/deals',
+                    { deal: dealData },
+                    null
+                );
+
+                console.log(`🚨 CREATING SIBLING DEAL with tracking: ${dealChangeId}`);
+                const dealResponse = await this.client.createDeal(dealData);
+                await this.changeTracker.recordResponse(dealChangeId, dealResponse);
+
+                const dealId = dealResponse.deal?.id;
+                console.log(`✅ Created Sibling Deal: ${dealId} (${childName}) for existing parent ${contactId}`);
+                this.syncStats.created++;
+            }
+
+            // STEP 3: Always do additive contact updates (secondary email/mobile)
+            const contactData = this.mapper.mapLeadToContact(leadData);
+            const additiveUpdate = await this.buildAdditiveUpdate({ id: contactId }, contactData);
+
+            if (Object.keys(additiveUpdate).length > 0) {
+                const updateChangeId = await this.changeTracker.recordOperation(
+                    'update',
+                    `/contacts/${contactId}`,
+                    { contact: additiveUpdate },
+                    { id: contactId }
+                );
+
+                console.log(`🔄 ADDITIVE UPDATE for ${contactId}:`, JSON.stringify(additiveUpdate, null, 2));
+                const updateResponse = await this.client.updateContact(contactId, additiveUpdate);
+                await this.changeTracker.recordResponse(updateChangeId, updateResponse);
+
+                console.log(`✅ Added missing fields to contact ${contactId}`);
+                this.syncStats.updated++;
+            } else {
+                console.log(`No new contact fields to add for ${contactId}`);
+            }
+
+        } catch (error) {
+            console.error(`Failed to handle existing parent ${contactId}:`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * Build additive update - only add missing fields, never overwrite existing
+     * Handles both scenarios:
+     * 1. Duplicate found by mobile → add email as secondary
+     * 2. Duplicate found by email → add mobile as secondary (work_number)
+     * @param {Object} existingContact - Existing contact from search (may be partial)
+     * @param {Object} newContactData - New contact data to merge
+     * @returns {Promise<Object>} Update object with only new fields
+     */
+    async buildAdditiveUpdate(existingContact, newContactData) {
+        const update = {};
+
+        try {
+            // Fetch FULL contact details including emails array
+            const fullContact = await this.client.getContact(existingContact.id);
+
+            // SCENARIO 1: Check if new email should be added (duplicate found by mobile)
+            const newEmail = newContactData.emails?.[0]?.value;
+            if (newEmail) {
+                const existingEmails = fullContact.contact?.emails || [];
+                const emailExists = existingEmails.some(e => e.value?.toLowerCase() === newEmail.toLowerCase());
+
+                if (!emailExists) {
+                    // Add new email as secondary (non-primary)
+                    const updatedEmails = [
+                        ...existingEmails,
+                        {
+                            value: newEmail,
+                            is_primary: false,
+                            label: 'work'
+                        }
+                    ];
+                    update.emails = updatedEmails;
+                    console.log(`  📧 Adding secondary email: ${newEmail}`);
+                }
+            }
+
+            // SCENARIO 2: Check if new mobile should be added (duplicate found by email)
+            const newMobile = newContactData.mobile_number;
+            if (newMobile) {
+                const existingMobile = fullContact.contact?.mobile_number;
+                const existingWork = fullContact.contact?.work_number;
+
+                if (!existingMobile && !existingWork) {
+                    // No phone numbers at all - add as mobile
+                    update.mobile_number = newMobile;
+                    console.log(`  📱 Adding mobile: ${newMobile}`);
+                } else if (existingMobile !== newMobile && existingWork !== newMobile) {
+                    // Different number exists - add as work_number if work is empty
+                    if (!existingWork) {
+                        update.work_number = newMobile;
+                        console.log(`  📞 Adding work number: ${newMobile}`);
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.warn(`Could not fetch full contact details for additive update: ${error.message}`);
+            // Return empty update if we can't fetch details
+        }
+
+        return update;
+    }
+
+    /**
      * Create new contact in FreshSales (PARENT) and associated deal (CHILD)
      * @param {Object} contactData - Contact data
      * @param {Object} leadData - Original lead data
@@ -413,10 +602,13 @@ class FreshSalesSync {
                     updateData.contact_status_id = safeContactData.contact_status_id;
                 }
                 if (safeContactData.cf_parent_owner) {
-                    updateData.cf_parent_owner = safeContactData.cf_parent_owner;
+                    // Custom fields must be wrapped in custom_field object
+                    updateData.custom_field = { cf_parent_owner: safeContactData.cf_parent_owner };
                 }
 
                 console.log(`🔄 UPDATING CONTACT with status/owner (FreshSales API quirk workaround)`);
+                console.log(`🔍 DEBUG: Update request payload:`, JSON.stringify(updateData, null, 2));
+
                 const updateChangeId = await this.changeTracker.recordOperation(
                     'update',
                     `/contacts/${contactId}`,
@@ -426,6 +618,11 @@ class FreshSalesSync {
 
                 const updateResponse = await this.client.updateContact(contactId, updateData);
                 await this.changeTracker.recordResponse(updateChangeId, updateResponse);
+
+                console.log(`📥 DEBUG: Update response:`, JSON.stringify({
+                    contact_status_id: updateResponse.contact?.contact_status_id || 'NOT IN RESPONSE',
+                    cf_parent_owner: updateResponse.contact?.custom_field?.cf_parent_owner || updateResponse.contact?.cf_parent_owner || 'NOT IN RESPONSE'
+                }, null, 2));
                 console.log(`✅ Updated contact ${contactId} with status/owner`);
             }
 
@@ -451,9 +648,9 @@ class FreshSalesSync {
                 // STEP 3: Add Note to Contact
                 const notes = leadData.notes || leadData.Notes || '';
                 const noteContent = `New lead from pre-sales system
-Child Name: ${leadData.childName || leadData['Child Name'] || 'Unknown'}
-Source: ${leadData.sourceTag || leadData['Source Tag'] || 'Unknown'}
-Timestamp: ${leadData.timestamp || leadData.Timestamp || 'Unknown'}
+Child Name: ${leadData.child_name || leadData.childName || leadData['Child Name'] || 'Unknown'}
+Source: ${leadData.source_tag || leadData.sourceTag || leadData['Source Tag'] || 'Unknown'}
+Timestamp: ${leadData.timestamp || leadData.Timestamp || new Date().toISOString()}
 ${notes ? `\nNotes: ${notes}` : ''}
 
 TRACKING: Contact ${contactChangeId} | Deal ${dealChangeId}`;
@@ -566,10 +763,7 @@ TRACKING: Contact ${contactChangeId} | Deal ${dealChangeId}`;
                 const syncEligibleStatuses = ['warm', 'hot', 'not interested'];
                 filteredLeads = filteredLeads.filter(lead => {
                     const status = (lead.Status || lead.status || lead['Interest Level'] || '').toLowerCase();
-                    const crmLink = lead.crm_contact_link || lead['CRM Contact Link'] || lead.crmContactLink;
-                    // Exclude records that already have CRM links (already synced)
-                    const notAlreadySynced = !crmLink || crmLink === '';
-                    return syncEligibleStatuses.includes(status) && notAlreadySynced;
+                    return syncEligibleStatuses.includes(status);
                 });
             }
 

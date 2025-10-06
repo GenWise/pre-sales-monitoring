@@ -1,0 +1,291 @@
+{
+  "timestamp": "2025-10-05T17:05:13.492Z",
+  "environment": "production_test",
+  "configuration": {
+    "masterSheetId": "1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ",
+    "freshsalesDomain": "genwisecrm.myfreshworks.com",
+    "serviceAccountFile": "configured"
+  },
+  "results": {
+    "tests": {
+      "API Connectivity": {
+        "status": "PASSED",
+        "result": {
+          "timestamp": "2025-10-05T17:05:00.421Z",
+          "mockMode": false,
+          "tests": {
+            "contactFields": {
+              "status": "error",
+              "message": "https is not defined"
+            },
+            "search": {
+              "status": "error",
+              "message": "https is not defined"
+            },
+            "activities": {
+              "status": "error",
+              "message": "https is not defined"
+            },
+            "contactRead": {
+              "status": "expected_failure",
+              "message": "Contact read permissions denied (expected based on research)"
+            }
+          }
+        },
+        "timestamp": "2025-10-05T17:05:00.422Z"
+      },
+      "Google Sheets Access": {
+        "status": "FAILED",
+        "error": "Google API error - [403] Method doesn't allow unregistered callers (callers without established identity). Please use API Key or other form of API consumer identity to call this API.",
+        "timestamp": "2025-10-05T17:05:01.184Z"
+      },
+      "FreshSales Endpoints": {
+        "status": "PASSED",
+        "result": {
+          "contactFields": {
+            "status": "error",
+            "message": "https is not defined"
+          },
+          "contactsView": {
+            "status": "error",
+            "message": "https is not defined"
+          },
+          "search": {
+            "status": "error",
+            "message": "https is not defined"
+          }
+        },
+        "timestamp": "2025-10-05T17:05:01.184Z"
+      },
+      "Field Mapping": {
+        "status": "PASSED",
+        "result": {
+          "originalLead": {
+            "Timestamp": "2025-10-05T17:05:01.184Z",
+            "Child Name": "Test Child",
+            "Parent Name": "Test Parent",
+            "Parent Email": "test@example.com",
+            "Parent Mobile": "+91-9876543210",
+            "Child Grade": "Grade 3",
+            "Program": "GSP",
+            "Interest Level": "Hot",
+            "Geography": "Mumbai"
+          },
+          "mappedContact": {
+            "first_name": "Test",
+            "last_name": "Parent",
+            "emails": [
+              {
+                "value": "test@example.com",
+                "is_primary": true,
+                "label": "work"
+              }
+            ],
+            "mobile_number": "+919876543210",
+            "contact_status_id": 402000446643,
+            "last_source": "Web Form",
+            "tags": [
+              "program:gsp",
+              "grade:grade_3",
+              "pre_sales_lead"
+            ],
+            "cf_child_grade": "Grade 3",
+            "cf_program": "GSP",
+            "country": "Mumbai"
+          },
+          "reverseMapped": {
+            "freshsalesId": "test_123",
+            "childName": "Test Parent",
+            "parentName": "Test Parent",
+            "parentEmail": "test@example.com",
+            "parentMobile": "+919876543210",
+            "interestLevel": "New",
+            "tags": "",
+            "lastUpdated": "2025-10-05T17:05:01.185Z"
+          }
+        },
+        "timestamp": "2025-10-05T17:05:01.185Z"
+      },
+      "Contact Search": {
+        "status": "FAILED",
+        "error": "Google API error - [403] Method doesn't allow unregistered callers (callers without established identity). Please use API Key or other form of API consumer identity to call this API.",
+        "timestamp": "2025-10-05T17:05:01.960Z"
+      },
+      "Contact Creation (Mock)": {
+        "status": "FAILED",
+        "error": "Cannot read properties of undefined (reading 'contact')",
+        "timestamp": "2025-10-05T17:05:02.260Z"
+      },
+      "Sync Engine": {
+        "status": "PASSED",
+        "result": {
+          "timestamp": "2025-10-05T17:05:02.261Z",
+          "tests": {
+            "connectivity": {
+              "status": "success",
+              "data": true
+            },
+            "fieldMapping": {
+              "status": "success",
+              "originalLead": {
+                "Timestamp": "2025-10-05T17:05:02.638Z",
+                "Child Name": "Mock Child 1",
+                "Parent Name": "Mock Parent 1",
+                "Parent Email": "parent1@mockmail.com",
+                "Parent Mobile": "+915590040513",
+                "Child Grade": "Grade 4",
+                "Program": "Math Olympiad",
+                "Interest Level": "New",
+                "Geography": "Mock City"
+              },
+              "mappedContact": {
+                "first_name": "Mock",
+                "last_name": "Parent 1",
+                "emails": [
+                  {
+                    "value": "parent1@mockmail.com",
+                    "is_primary": true,
+                    "label": "work"
+                  }
+                ],
+                "mobile_number": "+915590040513",
+                "contact_status_id": 402000446643,
+                "last_source": "Web Form",
+                "tags": [
+                  "program:math_olympiad",
+                  "grade:grade_4",
+                  "pre_sales_lead"
+                ],
+                "cf_child_grade": "Grade 4",
+                "cf_program": "Math Olympiad",
+                "country": "Mock City"
+              },
+              "reverseMapped": {
+                "freshsalesId": "mock_123",
+                "childName": "Mock Parent 1",
+                "parentName": "Mock Parent 1",
+                "parentEmail": "parent1@mockmail.com",
+                "parentMobile": "+915590040513",
+                "interestLevel": "New",
+                "tags": ""
+              }
+            },
+            "mockSync": {
+              "status": "success",
+              "data": {
+                "success": true,
+                "message": "Sync completed successfully",
+                "timestamp": "2025-10-05T17:05:09.567Z",
+                "stats": {
+                  "processed": 2,
+                  "created": 2,
+                  "updated": 0,
+                  "skipped": 0,
+                  "errors": 0,
+                  "duplicates": 0
+                },
+                "rateLimits": {
+                  "hourly": {
+                    "remaining": 950,
+                    "limit": 1000
+                  },
+                  "perMinute": {
+                    "remaining": 350,
+                    "limit": 400
+                  }
+                },
+                "mockMode": true
+              }
+            }
+          }
+        },
+        "timestamp": "2025-10-05T17:05:09.567Z"
+      },
+      "Bidirectional Sync": {
+        "status": "PASSED",
+        "result": {
+          "toFreshSales": {
+            "success": true,
+            "message": "Sync completed successfully",
+            "timestamp": "2025-10-05T17:05:13.113Z",
+            "stats": {
+              "processed": 2,
+              "created": 0,
+              "updated": 1,
+              "skipped": 0,
+              "errors": 2,
+              "duplicates": 1
+            },
+            "rateLimits": {
+              "hourly": {
+                "remaining": 950,
+                "limit": 1000
+              },
+              "perMinute": {
+                "remaining": 350,
+                "limit": 400
+              }
+            },
+            "mockMode": true
+          },
+          "fromFreshSales": {
+            "success": false,
+            "message": "Reverse sync failed: this.client.getContactsFromView is not a function",
+            "timestamp": "2025-10-05T17:05:13.113Z",
+            "stats": {
+              "processed": 0,
+              "created": 0,
+              "updated": 0,
+              "skipped": 0,
+              "errors": 0,
+              "duplicates": 0
+            },
+            "rateLimits": {
+              "hourly": {
+                "remaining": 950,
+                "limit": 1000
+              },
+              "perMinute": {
+                "remaining": 350,
+                "limit": 400
+              }
+            },
+            "mockMode": true
+          }
+        },
+        "timestamp": "2025-10-05T17:05:13.113Z"
+      },
+      "Error Handling": {
+        "status": "PASSED",
+        "result": {
+          "invalidApiKey": {
+            "status": "correctly_handled",
+            "error": "https is not defined"
+          },
+          "invalidSheetId": {
+            "status": "correctly_handled",
+            "error": "Google API error - [403] Method doesn't allow unregistered callers (callers without established iden"
+          }
+        },
+        "timestamp": "2025-10-05T17:05:13.492Z"
+      },
+      "Rate Limiting": {
+        "status": "PASSED",
+        "result": {
+          "error": "https is not defined"
+        },
+        "timestamp": "2025-10-05T17:05:13.492Z"
+      }
+    },
+    "summary": {
+      "total": 10,
+      "passed": 7,
+      "failed": 3,
+      "warnings": 0
+    }
+  },
+  "recommendations": [
+    "Verify service account credentials and sheet permissions",
+    "Review field mapping and contact creation logic"
+  ]
+}

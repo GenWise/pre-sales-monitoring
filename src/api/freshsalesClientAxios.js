@@ -215,7 +215,8 @@ class FreshSalesClient {
      * @returns {Promise<Object>} Updated contact
      */
     async updateContact(contactId, contactData) {
-        const response = await this.makeRequestWithRetry(`/contacts/${contactId}`, 'PUT', { contact: contactData });
+        // CRITICAL: ?include=contact_status required for status updates to work (FreshSales API quirk)
+        const response = await this.makeRequestWithRetry(`/contacts/${contactId}?include=contact_status`, 'PUT', { contact: contactData });
         return response.data;
     }
 
@@ -257,6 +258,16 @@ class FreshSalesClient {
     }
 
     /**
+     * Get contacts from view (for reverse sync)
+     * @param {string} viewId - View ID (default: All Contacts)
+     * @returns {Promise<Object>} Contacts data
+     */
+    async getContactsFromView(viewId = '402002860065') {
+        const response = await this.makeRequestWithRetry(`/contacts/view/${viewId}`);
+        return response.data;
+    }
+
+    /**
      * Create a new deal
      * @param {Object} dealData - Deal data
      * @returns {Promise<Object>} Created deal
@@ -271,6 +282,24 @@ class FreshSalesClient {
         } catch (error) {
             if (error.message.includes('API_PERMISSION_DENIED')) {
                 console.warn('Deal creation failed: API permissions insufficient.');
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Get all deals for a contact
+     * @param {string} contactId - Contact ID
+     * @returns {Promise<Array>} Array of deals
+     */
+    async getContactDeals(contactId) {
+        try {
+            const response = await this.makeRequestWithRetry(`/contacts/${contactId}/deals`, 'GET');
+            return response.data.deals || [];
+        } catch (error) {
+            if (error.message.includes('API_PERMISSION_DENIED')) {
+                console.warn('Get contact deals failed: API permissions insufficient.');
+                return [];
             }
             throw error;
         }

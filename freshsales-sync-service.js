@@ -18,6 +18,7 @@
 require('dotenv').config();
 
 const FreshSalesSync = require('./src/api/freshsalesSync');
+const { DuplicateDetector } = require('./duplicate_detection');
 const cron = require('node-cron');
 const fs = require('fs').promises;
 const path = require('path');
@@ -47,8 +48,8 @@ class FreshSalesSyncService {
             environment: process.env.NODE_ENV || 'production',
             batchSize: 10,
             syncInterval: {
-                fromFreshSales: '0 * * * *', // Every hour at :00 - CRM updates FIRST
-                toFreshSales: '5 * * * *', // Every hour at :05 - new leads AFTER (prevents stale data overwrites)
+                fromFreshSales: null, // DEPRECATED - syncContactsFromFreshSales not used (duplicate detection handles this)
+                toFreshSales: '2,32 * * * *', // Every 30 min at :02 and :32 - new leads AFTER
                 healthCheck: '0 */6 * * *'    // Every 6 hours - system health
             },
 
@@ -66,6 +67,13 @@ class FreshSalesSyncService {
             batchSize: this.config.batchSize,
             duplicateStrategy: 'skip', // 'skip', 'update', or 'create_new'
             syncDirection: 'bidirectional'
+        });
+
+        this.duplicateDetector = new DuplicateDetector({
+            apiKey: this.config.freshsalesApiKey,
+            domain: this.config.freshsalesDomain,
+            masterSheetId: this.config.masterSheetId,
+            serviceAccountFile: this.config.serviceAccountFile
         });
 
         this.isRunning = false;
@@ -171,6 +179,12 @@ class FreshSalesSyncService {
      * Schedule sync from FreshSales to Google Sheets (status updates)
      */
     scheduleFromFreshSalesSync() {
+        // DEPRECATED: syncContactsFromFreshSales not used - duplicate detection handles reverse sync
+        if (!this.config.syncInterval.fromFreshSales) {
+            console.log(`📅 Reverse sync DISABLED (duplicate detection handles this)`);
+            return;
+        }
+
         console.log(`📅 Scheduling sync from FreshSales: ${this.config.syncInterval.fromFreshSales}`);
 
         cron.schedule(this.config.syncInterval.fromFreshSales, async () => {
@@ -204,10 +218,14 @@ class FreshSalesSyncService {
         try {
             this.log('SYNC_START', 'Starting sync to FreshSales');
 
-            // Get only new leads since last sync
-            const options = {
-                since: this.syncStats.lastToFreshSalesSync || this.getDefaultSinceDate()
-            };
+            // STEP 1: Run duplicate detection FIRST to update new_existing field
+            console.log('🔍 Step 1: Running duplicate detection...');
+            const duplicateResult = await this.duplicateDetector.run();
+            console.log(`✅ Duplicate detection: ${duplicateResult.stats.duplicatesFound} existing parents found`);
+
+            // STEP 2: Sync all eligible leads (removed time filter to process all Warm|Hot|Not Interested records)
+            console.log('📤 Step 2: Syncing new leads to FreshSales...');
+            const options = {};
 
             const result = await this.syncEngine.syncLeadsToFreshSales(options);
 
@@ -246,6 +264,13 @@ class FreshSalesSyncService {
         try {
             this.log('SYNC_START', 'Starting sync from FreshSales');
 
+            // STEP 1: Run duplicate detection to update new_existing field for any new sheet entries
+            console.log('🔍 Step 1: Running duplicate detection...');
+            const duplicateResult = await this.duplicateDetector.run();
+            console.log(`✅ Duplicate detection: ${duplicateResult.stats.duplicatesFound} existing parents found`);
+
+            // STEP 2: Sync contact updates from FreshSales
+            console.log('📥 Step 2: Syncing updates from FreshSales...');
             const options = {
                 since: this.syncStats.lastFromFreshSalesSync || this.getDefaultSinceDate()
             };

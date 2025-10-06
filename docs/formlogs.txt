@@ -1,0 +1,224 @@
+Cloud logs
+Oct 5, 2025, 12:27:01 PM	Debug	returning_students submission received, processing...
+Oct 5, 2025, 12:27:02 PM	Debug	Extracted form data: { 'Student Name': 'test_child_returning',
+  'Parent Name': 'test_parent_returning',
+  Email: 'test@parent.inc',
+  'Phone Number': '1212121212',
+  'Interested in the Gifted Summer Program': 'I am interested, but have questions and would like you to contact me.',
+  responseId: '2_ABaOnueTm4ZPN30HzF7BbWGl3YzQMPlXNl-mCkBk7cUk5jlEQ1BWmdgQbNCV_3MiCWuQySw',
+  submissionTime: Sun Oct 05 2025 12:26:59 GMT+0530 (India Standard Time),
+  editUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSc3AJbrG1tifHuUj_pHQwPQhNM0IMnBlXLJd_Gf2BmJ1qGsBA/viewform?edit2=2_ABaOnueTm4ZPN30HzF7BbWGl3YzQMPlXNl-mCkBk7cUk5jlEQ1BWmdgQbNCV_3MiCWuQySw' }
+Oct 5, 2025, 12:27:02 PM	Debug	🔥🔥🔥 mapFormResponse VERSION 23:51 CALLED 🔥🔥🔥
+Oct 5, 2025, 12:27:02 PM	Debug	Applying default values: { new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending' }
+Oct 5, 2025, 12:27:02 PM	Debug	Setting new_existing to New Parent
+Oct 5, 2025, 12:27:02 PM	Debug	Setting duplicate_flag to No
+Oct 5, 2025, 12:27:02 PM	Debug	Setting assigned_owner to Unassigned
+Oct 5, 2025, 12:27:02 PM	Debug	Setting status to First Call Pending
+Oct 5, 2025, 12:27:02 PM	Debug	After defaults, mappedData: { child_name: 'test_child_returning',
+  parent_name: 'test_parent_returning',
+  parent_email: 'test@parent.inc',
+  parent_mobile: '1212121212',
+  interest_level: 'I am interested, but have questions and would like you to contact me.',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending' }
+Oct 5, 2025, 12:27:02 PM	Debug	Interest level: "I am interested, but have questions and would like you to contact me." -> "Medium"
+Oct 5, 2025, 12:27:02 PM	Debug	Mapped data after mapFormResponse: { child_name: 'test_child_returning',
+  parent_name: 'test_parent_returning',
+  parent_email: 'test@parent.inc',
+  parent_mobile: '1212121212',
+  interest_level: 'Medium',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending',
+  source_tag: 'returning_students',
+  timestamp: '2025-10-05T06:57:02.887Z' }
+Oct 5, 2025, 12:27:02 PM	Debug	Opening master sheet: 1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ
+Oct 5, 2025, 12:27:03 PM	Debug	Mapped data to write: { child_name: 'test_child_returning',
+  parent_name: 'test_parent_returning',
+  parent_email: 'test@parent.inc',
+  parent_mobile: '1212121212',
+  interest_level: 'Medium',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending',
+  source_tag: 'returning_students',
+  timestamp: '2025-10-05T06:57:02.887Z' }
+Oct 5, 2025, 12:27:03 PM	Debug	Row data to insert: [ 'test_child_returning',
+  'test_parent_returning',
+  'test@parent.inc',
+  '1212121212',
+  'New Parent',
+  'Medium',
+  'returning_students',
+  '2025-10-05T06:57:02.887Z',
+  'No',
+  'First Call Pending',
+  'Unassigned',
+  '',
+  '' ]
+Oct 5, 2025, 12:27:03 PM	Debug	✅ returning_students data written to master sheet at row 25
+Oct 5, 2025, 12:27:03 PM	Debug	✅ Successfully wrote returning_students data to master database
+Oct 5, 2025, 12:27:03 PM	Debug	✅ returning_students Success log: { timestamp: '2025-10-05T06:57:03.531Z',
+  sourceTag: 'returning_students',
+  status: 'SUCCESS',
+  parentEmail: 'test@parent.inc',
+  parentName: 'test_parent_returning',
+  masterSheetRow: 25,
+  masterSheetUrl: 'https://docs.google.com/spreadsheets/d/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ/edit#gid=0&range=A25' }
+Oct 5, 2025, 12:27:03 PM	Debug	✅ Email notification sent to: rajesh@genwise.in
+Oct 5, 2025, 12:27:04 PM	Debug	✅ Slack notification sent successfully
+
+------------
+Cloud logs
+Oct 5, 2025, 12:24:46 PM	Debug	ats_qualifiers submission received, processing...
+Oct 5, 2025, 12:24:47 PM	Debug	Extracted form data: { 'Child Name': 'test_child_ats',
+  'Parent Name': 'test_parent_ats',
+  'Parent Email Id': 'parent_ats@exampl.co',
+  'Parent Mobile Number': '1010101010',
+  'Interested in the Gifted Summer Program ': 'Ready to Sign up and save almost 25% through available discounts',
+  responseId: '2_ABaOnuc05w4MlGpSP53k6USbhu1bbrb6OCFSiAXARxJZTINcqDJF3z4Uz5UNkyCoPE1PPCo',
+  submissionTime: Sun Oct 05 2025 12:24:45 GMT+0530 (India Standard Time),
+  editUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdraBQF7TmbK6d5P0QZF58VOQsaW8oeGhnciaZLSJ8Mu3uigg/viewform?edit2=2_ABaOnuc05w4MlGpSP53k6USbhu1bbrb6OCFSiAXARxJZTINcqDJF3z4Uz5UNkyCoPE1PPCo' }
+Oct 5, 2025, 12:24:47 PM	Debug	🔥🔥🔥 mapFormResponse VERSION 23:51 CALLED 🔥🔥🔥
+Oct 5, 2025, 12:24:47 PM	Debug	Applying default values: { new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending' }
+Oct 5, 2025, 12:24:47 PM	Debug	Setting new_existing to New Parent
+Oct 5, 2025, 12:24:47 PM	Debug	Setting duplicate_flag to No
+Oct 5, 2025, 12:24:47 PM	Debug	Setting assigned_owner to Unassigned
+Oct 5, 2025, 12:24:47 PM	Debug	Setting status to First Call Pending
+Oct 5, 2025, 12:24:47 PM	Debug	After defaults, mappedData: { child_name: 'test_child_ats',
+  parent_name: 'test_parent_ats',
+  parent_email: 'parent_ats@exampl.co',
+  parent_mobile: '1010101010',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending' }
+Oct 5, 2025, 12:24:47 PM	Debug	Mapped data after mapFormResponse: { child_name: 'test_child_ats',
+  parent_name: 'test_parent_ats',
+  parent_email: 'parent_ats@exampl.co',
+  parent_mobile: '1010101010',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending',
+  source_tag: 'ats_qualifiers',
+  timestamp: '2025-10-05T06:54:47.823Z' }
+Oct 5, 2025, 12:24:47 PM	Debug	Opening master sheet: 1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ
+Oct 5, 2025, 12:24:47 PM	Debug	Mapped data to write: { child_name: 'test_child_ats',
+  parent_name: 'test_parent_ats',
+  parent_email: 'parent_ats@exampl.co',
+  parent_mobile: '1010101010',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending',
+  source_tag: 'ats_qualifiers',
+  timestamp: '2025-10-05T06:54:47.823Z' }
+Oct 5, 2025, 12:24:48 PM	Debug	Row data to insert: [ 'test_child_ats',
+  'test_parent_ats',
+  'parent_ats@exampl.co',
+  '1010101010',
+  'New Parent',
+  '',
+  'ats_qualifiers',
+  '2025-10-05T06:54:47.823Z',
+  'No',
+  'First Call Pending',
+  'Unassigned',
+  '',
+  '' ]
+Oct 5, 2025, 12:24:48 PM	Debug	✅ ats_qualifiers data written to master sheet at row 24
+Oct 5, 2025, 12:24:48 PM	Debug	✅ Successfully wrote ats_qualifiers data to master database
+Oct 5, 2025, 12:24:48 PM	Debug	✅ ats_qualifiers Success log: { timestamp: '2025-10-05T06:54:48.506Z',
+  sourceTag: 'ats_qualifiers',
+  status: 'SUCCESS',
+  parentEmail: 'parent_ats@exampl.co',
+  parentName: 'test_parent_ats',
+  masterSheetRow: 24,
+  masterSheetUrl: 'https://docs.google.com/spreadsheets/d/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ/edit#gid=0&range=A24' }
+Oct 5, 2025, 12:24:48 PM	Debug	✅ Email notification sent to: rajesh@genwise.in
+Oct 5, 2025, 12:24:48 PM	Debug	✅ Slack notification sent successfully
+
+----------
+Cloud logs
+Oct 5, 2025, 12:20:07 PM	Debug	early_bird submission received, processing...
+Oct 5, 2025, 12:20:08 PM	Debug	Extracted form data: { 'Child Name': 'test_child',
+  'Parent Name': 'test_parent',
+  'Parent Email ID': 'parent@example.org',
+  'Parent Mobile Number': '1111122222',
+  'Interested in the Gifted Summer Program ': 'Not interested in the Gifted Summer Program right now',
+  responseId: '2_ABaOnuc9n2VXn_GkWJv90RP7GvCdnjYTlAJzGWSQWLnuNFMs4h24O-MUhLCWMWPaLr6nqjY',
+  submissionTime: Sun Oct 05 2025 12:20:04 GMT+0530 (India Standard Time),
+  editUrl: 'https://docs.google.com/forms/d/e/1FAIpQLScoaWU3LuM5os8ebZrC65S3FWvw7wltfVDvLP_2lbNcxKG6eA/viewform?edit2=2_ABaOnuc9n2VXn_GkWJv90RP7GvCdnjYTlAJzGWSQWLnuNFMs4h24O-MUhLCWMWPaLr6nqjY' }
+Oct 5, 2025, 12:20:08 PM	Debug	🔥🔥🔥 mapFormResponse VERSION 23:51 CALLED 🔥🔥🔥
+Oct 5, 2025, 12:20:08 PM	Debug	Applying default values: { new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending' }
+Oct 5, 2025, 12:20:08 PM	Debug	Setting new_existing to New Parent
+Oct 5, 2025, 12:20:08 PM	Debug	Setting duplicate_flag to No
+Oct 5, 2025, 12:20:08 PM	Debug	Setting assigned_owner to Unassigned
+Oct 5, 2025, 12:20:08 PM	Debug	Setting status to First Call Pending
+Oct 5, 2025, 12:20:08 PM	Debug	After defaults, mappedData: { child_name: 'test_child',
+  parent_name: 'test_parent',
+  parent_email: 'parent@example.org',
+  parent_mobile: '1111122222',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending' }
+Oct 5, 2025, 12:20:08 PM	Debug	Mapped data after mapFormResponse: { child_name: 'test_child',
+  parent_name: 'test_parent',
+  parent_email: 'parent@example.org',
+  parent_mobile: '1111122222',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending',
+  source_tag: 'early_bird',
+  timestamp: '2025-10-05T06:50:08.235Z' }
+Oct 5, 2025, 12:20:08 PM	Debug	Opening master sheet: 1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ
+Oct 5, 2025, 12:20:08 PM	Debug	Mapped data to write: { child_name: 'test_child',
+  parent_name: 'test_parent',
+  parent_email: 'parent@example.org',
+  parent_mobile: '1111122222',
+  new_existing: 'New Parent',
+  duplicate_flag: 'No',
+  assigned_owner: 'Unassigned',
+  status: 'First Call Pending',
+  source_tag: 'early_bird',
+  timestamp: '2025-10-05T06:50:08.235Z' }
+Oct 5, 2025, 12:20:08 PM	Debug	Row data to insert: [ 'test_child',
+  'test_parent',
+  'parent@example.org',
+  '1111122222',
+  'New Parent',
+  '',
+  'early_bird',
+  '2025-10-05T06:50:08.235Z',
+  'No',
+  'First Call Pending',
+  'Unassigned',
+  '',
+  '' ]
+Oct 5, 2025, 12:20:08 PM	Debug	✅ early_bird data written to master sheet at row 23
+Oct 5, 2025, 12:20:08 PM	Debug	✅ Successfully wrote early_bird data to master database
+Oct 5, 2025, 12:20:08 PM	Debug	✅ early_bird Success log: { timestamp: '2025-10-05T06:50:08.948Z',
+  sourceTag: 'early_bird',
+  status: 'SUCCESS',
+  parentEmail: 'parent@example.org',
+  parentName: 'test_parent',
+  masterSheetRow: 23,
+  masterSheetUrl: 'https://docs.google.com/spreadsheets/d/1Ux8iEW8dabbEMUq1mEhrpY6a0WAUTCTR_8kvZ-hLHaQ/edit#gid=0&range=A23' }
+Oct 5, 2025, 12:20:09 PM	Debug	✅ Email notification sent to: rajesh@genwise.in
+Oct 5, 2025, 12:20:09 PM	Debug	✅ Slack notification sent successfully

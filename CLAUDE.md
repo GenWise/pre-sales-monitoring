@@ -43,6 +43,15 @@
 - **Development**: rajesh@genwise.in
 - **Production**: gifted@genwise.in, eklavya@genwise.in, ashish@genwise.in
 
+## Deployment Workflow
+- **Google Apps Script Deployment**: Use `clasp push --force` from `deploy/<form_name>/` directory
+  - `cd deploy/website && clasp push --force` - Deploy website form script
+  - `cd deploy/returning_students && clasp push --force` - Deploy returning_students script
+  - `cd deploy/ats_qualifiers && clasp push --force` - Deploy ats_qualifiers script
+  - `cd deploy/early_bird && clasp push --force` - Deploy early_bird script
+- **After deploying**: User must re-authorize script in Google Forms (Extensions → Apps Script → Run any function to trigger authorization)
+- **Slack Authorization**: Requires `https://www.googleapis.com/auth/script.external_request` scope in `appsscript.json`
+
 ## **FreshSales CRM Data Model (CRITICAL)**
 **Contact = Parent** | **Deal = Child**
 - **Contact**: Parent details (parent_name → first_name/last_name, parent_email, parent_mobile)
@@ -56,6 +65,7 @@
 ## **FreshSales API Quirks (MUST FOLLOW)**
 - **contact_status_id**: SILENTLY IGNORED during POST /contacts - must use two-step: POST create → PUT /contacts/:id to update
 - **contact_status_id GET quirk**: Not returned by default - requires `?include=contact_status` parameter
+- **contact_status_id PUT quirk**: REQUIRES `?include=contact_status` parameter for UPDATE to work (not just for response visibility) - without it, status UPDATE silently fails
 - **cf_parent_owner**: Accepts TEXT values ONLY ("Kevin", "Agnes", "Ashish", "Eklavya") - numeric IDs silently ignored
 - **cf_parent_owner**: SILENTLY IGNORED during POST - must use PUT /contacts/:id after creation (same two-step as status)
 - **lead_source_id**: Read-only field with `'visible': false` - use `last_source` text field instead
@@ -180,6 +190,12 @@
 - **Sync Schedule**: Forward hourly (:00), reverse 2-hourly (:00) to reduce API load
 
 ## Session Learnings (Expire after 30 days)
+
+### Google Forms invisible unicode characters (Added: 2025-10-05, Expires: 2025-11-04)
+Google Forms adds invisible unicode chars (⁠ = U+2060 word joiner) to some form responses. Exact string matching fails. Solution: normalize with `.replace(/[\u200B-\u200D\uFEFF\u2060]/g, '').toLowerCase().trim()` before lookup. Keep spaces intact for multi-word matching.
+
+### Form-bound Apps Script clasp sync unreliable (Added: 2025-10-05, Expires: 2025-11-04)
+`clasp push --force` sometimes doesn't update Google's copy. User sees old version in editor despite successful push. Manual copy-paste to Apps Script editor more reliable for form-bound scripts. Use clasp for standalone projects only.
 
 ### FreshSales API key has search but not list permission (Added: 2025-10-04, Expires: 2025-11-03)
 Current API key (awiMf4YWS-S4wE_10pUmHQ) works with GET /search, POST /contacts, PUT /contacts but fails on GET /contacts (403). Use /search endpoint for health checks and duplicate detection. Sync operations already use permitted endpoints so no functional impact.

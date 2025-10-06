@@ -22,11 +22,11 @@ const EMAIL_RECIPIENTS = 'rajesh@genwise.in';
 
 // EXACT DROPDOWN VALUES FROM MASTER SHEET - MUST MATCH EXACTLY
 const ALLOWED_VALUES = {
-    STATUS: ['New Parent', 'Contacted', 'Follow-up', 'Enrolled', 'Not Interested'],
+    STATUS: ['First Call Pending', 'Warm', 'Hot', 'Not Interested'],
     INTEREST_LEVEL: ['High', 'Medium', 'Low'],
     SOURCE_TAG: ['returning_students', 'ats_qualifiers', 'website', 'early_bird'],
     DUPLICATE_FLAG: ['Yes', 'No'],
-    ASSIGNED_OWNER: ['Unassigned', 'Rajesh', 'Team Member']
+    ASSIGNED_OWNER: ['Unassigned', 'Kevin', 'Agnes', 'Eklavya', 'Ashish']
 };
 
 // Master Database Schema - SNAKE_CASE column names
@@ -82,13 +82,8 @@ const WEBSITE_CONFIG = {
     defaultValues: {
         [MASTER_FIELDS.NEW_EXISTING]: 'New Parent',
         [MASTER_FIELDS.DUPLICATE_FLAG]: 'No',
-        [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned'
-    },
-    // WEBSITE SPECIFIC INTEREST LEVEL MAPPINGS - EXACT FORM OPTIONS
-    interestLevelMapping: {
-        'Ready to Sign up and save almost 25% through available discounts': 'High',
-        'Like to speak to GenWise team to resolve questions on my mind': 'Medium',
-        'Not interested in the GenWise Summer Program right now': 'Low'
+        [MASTER_FIELDS.ASSIGNED_OWNER]: 'Unassigned',
+        [MASTER_FIELDS.STATUS]: 'First Call Pending'
     }
 };
 
@@ -112,6 +107,7 @@ function onFormSubmit(e) {
 
         // Map and validate the form data
         const mappedData = mapFormResponse(formData, WEBSITE_CONFIG);
+        console.log('Mapped data after mapFormResponse:', mappedData);
 
         // CRITICAL VALIDATION - REJECT if values don't match allowed dropdown values
         const validationResult = validateDropdownValues(mappedData);
@@ -257,6 +253,7 @@ function extractFormData(response) {
  * Map form response data to master database format
  */
 function mapFormResponse(formResponse, formConfig) {
+    console.log('🔥🔥🔥 mapFormResponse VERSION 23:51 CALLED 🔥🔥🔥');
     const mappedData = {};
 
     // Apply field mappings
@@ -268,19 +265,57 @@ function mapFormResponse(formResponse, formConfig) {
     });
 
     // Apply default values for missing fields
+    console.log('Applying default values:', formConfig.defaultValues);
     Object.keys(formConfig.defaultValues).forEach(field => {
         if (!mappedData[field]) {
+            console.log(`Setting ${field} to ${formConfig.defaultValues[field]}`);
             mappedData[field] = formConfig.defaultValues[field];
         }
     });
+    console.log('After defaults, mappedData:', mappedData);
 
-    // Apply website specific interest level mapping
-    if (mappedData[MASTER_FIELDS.INTEREST_LEVEL] && formConfig.interestLevelMapping) {
+    // Apply interest level mapping using EXACT logic from corrected_scripts
+    if (mappedData[MASTER_FIELDS.INTEREST_LEVEL]) {
         const originalLevel = mappedData[MASTER_FIELDS.INTEREST_LEVEL];
-        const mappedLevel = formConfig.interestLevelMapping[originalLevel];
-        if (mappedLevel) {
-            mappedData[MASTER_FIELDS.INTEREST_LEVEL] = mappedLevel;
-        }
+
+        // Normalize: lowercase + trim (keep spaces, just remove invisible chars)
+        const normalized = originalLevel.replace(/[\u200B-\u200D\uFEFF\u2060]/g, '').toLowerCase().trim();
+
+        // Mapping with exact form options + general fallbacks
+        const mappings = {
+            'ready to sign up and save almost 25% through available discounts': 'High',
+            'like to speak to genwise team to resolve questions on my mind': 'Medium',
+            'not interested in the genwise summer program right now': 'Low',
+
+            // General mappings as fallback
+            'urgent': 'High',
+            'high priority': 'High',
+            'very interested': 'High',
+            'definitely': 'High',
+            'very likely': 'High',
+            'immediately': 'High',
+            'asap': 'High',
+            'high': 'High',
+            'yes': 'High',
+
+            'normal': 'Medium',
+            'maybe': 'Medium',
+            'possibly': 'Medium',
+            'soon': 'Medium',
+            'medium': 'Medium',
+            'moderate': 'Medium',
+
+            'low priority': 'Low',
+            'unlikely': 'Low',
+            'not sure': 'Low',
+            'later': 'Low',
+            'low': 'Low',
+            'no': 'Low'
+        };
+
+        const mappedLevel = mappings[normalized] || 'Medium';
+        console.log(`Interest level: "${originalLevel}" -> "${mappedLevel}"`);
+        mappedData[MASTER_FIELDS.INTEREST_LEVEL] = mappedLevel;
     }
 
     // Ensure source tag is set to website
@@ -678,7 +713,7 @@ function setupTrigger() {
  */
 function testIntegration() {
     try {
-        console.log('🧪 Testing website integration...');
+        console.log('🧪 Testing website integration... VERSION 2025-10-04-23:47');
 
         const sampleData = {
             'Your Name': 'Test website Parent',
@@ -694,9 +729,12 @@ function testIntegration() {
         };
 
         console.log('Testing with sample data:', sampleData);
+        console.log('WEBSITE_CONFIG:', WEBSITE_CONFIG);
+        console.log('About to call mapFormResponse...');
 
         // Map the data
         const mappedData = mapFormResponse(sampleData, WEBSITE_CONFIG);
+        console.log('RETURNED from mapFormResponse');
         console.log('Mapped data:', mappedData);
 
         // Validate dropdown values

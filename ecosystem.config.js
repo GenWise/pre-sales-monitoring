@@ -1,21 +1,39 @@
 module.exports = {
-  apps: [{
-    name: 'freshsales-sync',
-    script: 'freshsales-sync-service.js',
-    args: 'start',
-    cwd: '/root/pre-sales-monitoring',
-    instances: 1,
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '300M',
-    env_file: '.env',
-    env: {
-      NODE_ENV: 'production'
+  apps: [
+    {
+      name: 'freshsales-sync',
+      script: 'freshsales-sync-service.js',
+      args: 'start',
+      cwd: '/root/pre-sales-monitoring',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '300M',
+      env_file: '.env',
+      env: {
+        NODE_ENV: 'production'
+      },
+      error_file: './logs/pm2-error.log',
+      out_file: './logs/pm2-out.log',
+      log_file: './logs/pm2-combined.log',
+      time: true,
+      kill_timeout: 5000
     },
-    error_file: './logs/pm2-error.log',
-    out_file: './logs/pm2-out.log',
-    log_file: './logs/pm2-combined.log',
-    time: true,
-    kill_timeout: 5000
-  }]
+    {
+      name: 'status-verification',
+      script: 'status-verification-service.js',
+      cwd: '/root/pre-sales-monitoring',
+      instances: 1,
+      autorestart: false,
+      cron_restart: '4,34 * * * *', // Run at :04 and :34 (2 min after forward sync at :02/:32)
+      watch: false,
+      env_file: '.env',
+      env: {
+        NODE_ENV: 'production'
+      },
+      error_file: './logs/status-verification-error.log',
+      out_file: './logs/status-verification-out.log',
+      time: true
+    }
+  ]
 };
