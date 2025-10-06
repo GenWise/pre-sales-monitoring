@@ -19,6 +19,7 @@ require('dotenv').config();
 
 const FreshSalesSync = require('./src/api/freshsalesSync');
 const { DuplicateDetector } = require('./duplicate_detection');
+const EmailNotifier = require('./src/notifications/emailNotifier');
 const cron = require('node-cron');
 const fs = require('fs').promises;
 const path = require('path');
@@ -75,6 +76,8 @@ class FreshSalesSyncService {
             masterSheetId: this.config.masterSheetId,
             serviceAccountFile: this.config.serviceAccountFile
         });
+
+        this.emailNotifier = new EmailNotifier();
 
         this.isRunning = false;
         this.syncStats = {
@@ -237,10 +240,11 @@ class FreshSalesSyncService {
                 stats: result.stats
             });
 
-            // Send notification for significant sync results
-            if (result.stats.created > 0 || result.stats.errors > 0) {
-                await this.sendSyncNotification('to_freshsales', result, Date.now() - startTime.getTime());
-            }
+            // Send notification for all sync runs (monitoring)
+            await this.sendSyncNotification('to_freshsales', result, Date.now() - startTime.getTime(), duplicateResult);
+
+            // Send email report
+            await this.emailNotifier.sendSyncReport(result, ['rajesh@genwise.in']);
 
             return result;
 
@@ -509,19 +513,51 @@ class FreshSalesSyncService {
     }
 
     /**
-     * Send sync completion notification
+     * Send sync completion notification with J1/J2/J3 format
      */
-    async sendSyncNotification(direction, result, duration) {
+    async sendSyncNotification(direction, result, duration, duplicateResult = null) {
         const emoji = direction === 'to_freshsales' ? '📤' : '📥';
         const directionText = direction === 'to_freshsales' ? 'Google Sheets → FreshSales' : 'FreshSales → Google Sheets';
 
-        const message =
-            `Direction: ${directionText}\n` +
-            `Duration: ${Math.round(duration / 1000)}s\n` +
-            `✅ Created: ${result.stats.created || 0}\n` +
-            `🔄 Updated: ${result.stats.updated || 0}\n` +
-            `⏭️ Skipped: ${result.stats.skipped || 0}\n` +
-            `❌ Errors: ${result.stats.errors || 0}`;
+        // Convert to IST
+        const now = new Date();
+        const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000))
+            .toISOString()
+            .replace('T', ' ')
+            .substring(0, 19) + ' IST';
+
+        const utcTime = now.toISOString().substring(11, 19) + ' UTC';
+
+        let message = `*${utcTime} / ${istTime}*\n\n`;
+
+        // J1 - Duplicate Detection
+        if (duplicateResult) {
+            message += `*J1 - Duplicate Detection:*\n`;
+            message += `- Processed ${duplicateResult.stats.totalRecords || 0} records, found ${duplicateResult.stats.duplicatesFound || 0} duplicates\n`;
+            if (duplicateResult.stats.duplicatesFound > 0) {
+                message += `- (Details available in Master Sheet duplicate_flag column)\n`;
+            }
+            message += `\n`;
+        }
+
+        // J2 - Forward Sync
+        message += `*J2 - Forward Sync (${directionText}):*\n`;
+        message += `- Duration: ${Math.round(duration / 1000)}s\n`;
+        message += `- Processed: ${result.stats.processed || 0}, Created: ${result.stats.created || 0}, Updated: ${result.stats.updated || 0}, Skipped: ${result.stats.skipped || 0}, Errors: ${result.stats.errors || 0}\n`;
+
+        // Show created contacts with details
+        if (result.createdContacts && result.createdContacts.length > 0) {
+            message += `- *Created:*\n`;
+            result.createdContacts.forEach(contact => {
+                message += `  • ${contact.childName} → ${contact.contactUrl} (Status: ${contact.status}, Owner: ${contact.owner})\n`;
+            });
+        } else if (result.stats.created === 0) {
+            message += `- No contacts created\n`;
+        }
+
+        message += `\n*J3 - Status Verification:*\n`;
+        message += `- Runs at :04 and :34 past the hour\n`;
+        message += `- Verifies contact_status_id for recently synced contacts`;
 
         const color = result.stats.errors > 0 ? 'warning' : 'good';
 

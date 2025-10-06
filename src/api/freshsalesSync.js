@@ -50,6 +50,10 @@ class FreshSalesSync {
             duplicates: 0
         };
 
+        // Detailed tracking for reporting
+        this.createdContacts = [];
+        this.duplicateContacts = [];
+
         console.log(`FreshSales Sync initialized (Mock mode: ${this.mockMode})`);
         console.log(`Sync direction: ${this.syncDirection}, Batch size: ${this.batchSize}`);
     }
@@ -258,7 +262,11 @@ class FreshSalesSync {
 
             if (targetRow) {
                 targetRow.set('crm_contact_link', crmContactUrl);
-                targetRow.set('last_synced_at', new Date().toISOString());
+                // Convert UTC to IST (UTC+5:30)
+                const now = new Date();
+                const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+                const istTime = new Date(now.getTime() + istOffset).toISOString().replace('Z', '+05:30');
+                targetRow.set('last_synced_at', istTime);
                 targetRow.set('new_existing', 'Existing Parent');
 
                 // Set light red background color (RGB: 244, 204, 204)
@@ -624,6 +632,15 @@ class FreshSalesSync {
                     cf_parent_owner: updateResponse.contact?.custom_field?.cf_parent_owner || updateResponse.contact?.cf_parent_owner || 'NOT IN RESPONSE'
                 }, null, 2));
                 console.log(`✅ Updated contact ${contactId} with status/owner`);
+
+                // Track created contact details for reporting
+                this.createdContacts.push({
+                    childName: leadData.child_name || leadData.childName || leadData['Child Name'] || 'Unknown',
+                    contactId: contactId,
+                    contactUrl: `https://genwisecrm.myfreshworks.com/crm/sales/contacts/${contactId}`,
+                    status: this.getStatusName(safeContactData.contact_status_id),
+                    owner: safeContactData.cf_parent_owner || 'Unassigned'
+                });
             }
 
             // STEP 2: Create Deal (Child) under this Contact
@@ -1001,6 +1018,21 @@ TRACKING: Contact ${contactChangeId} | Deal ${dealChangeId}`;
             errors: 0,
             duplicates: 0
         };
+        this.createdContacts = [];
+        this.duplicateContacts = [];
+    }
+
+    /**
+     * Get status name from status ID
+     */
+    getStatusName(statusId) {
+        const statusMap = {
+            '402000446647': 'Hot',
+            '402000446648': 'Warm',
+            '402000446646': 'Not Interested',
+            '402000769051': 'Tepid'
+        };
+        return statusMap[String(statusId)] || 'Unknown';
     }
 
     /**
@@ -1015,6 +1047,8 @@ TRACKING: Contact ${contactChangeId} | Deal ${dealChangeId}`;
             message,
             timestamp: new Date().toISOString(),
             stats: { ...this.syncStats },
+            createdContacts: [...this.createdContacts],
+            duplicateContacts: [...this.duplicateContacts],
             rateLimits: this.client.getRateLimitStatus(),
             mockMode: this.mockMode
         };

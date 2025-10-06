@@ -15,6 +15,8 @@
 const DUPLICATE_CONFIG = {
   // Column indices (0-based)
   PARENT_EMAIL_COL: 2,    // Column C (parent_email)
+  PARENT_MOBILE_COL: 3,   // Column D (parent_mobile)
+  TIMESTAMP_COL: 7,       // Column H (timestamp)
   DUPLICATE_FLAG_COL: 8,  // Column I (duplicate_flag)
 
   // Header row
@@ -38,8 +40,13 @@ function onSheetEdit(e) {
     const editedRow = e.range.getRow();
     const editedCol = e.range.getColumn();
 
-    // Only process if parent_email column was edited (Column C = index 3)
-    if (editedCol !== DUPLICATE_CONFIG.PARENT_EMAIL_COL + 1) {
+    // Process if parent_email or parent_mobile column was edited
+    const relevantColumns = [
+      DUPLICATE_CONFIG.PARENT_EMAIL_COL + 1,  // Column C
+      DUPLICATE_CONFIG.PARENT_MOBILE_COL + 1  // Column D
+    ];
+
+    if (!relevantColumns.includes(editedCol)) {
       return;
     }
 
@@ -48,7 +55,7 @@ function onSheetEdit(e) {
       return;
     }
 
-    console.log(`Email edited in row ${editedRow}, checking for duplicates...`);
+    console.log(`Email/Mobile edited in row ${editedRow}, checking for duplicates...`);
 
     // Run full duplicate check
     checkAllDuplicates(sheet);
@@ -59,8 +66,8 @@ function onSheetEdit(e) {
 }
 
 /**
- * Check all rows for duplicate emails and flag accordingly
- * LOGIC: First occurrence = No, subsequent occurrences = Yes
+ * Check all rows for duplicate emails/mobiles and flag accordingly
+ * LOGIC: Oldest (by timestamp) = No, most recent and others = Yes
  */
 function checkAllDuplicates(sheet) {
   const lastRow = sheet.getLastRow();
@@ -70,14 +77,14 @@ function checkAllDuplicates(sheet) {
     return;
   }
 
-  // Get all emails and duplicate flags
-  const emailRange = sheet.getRange(
+  // Get all data: emails, mobiles, timestamps
+  const dataRange = sheet.getRange(
     DUPLICATE_CONFIG.HEADER_ROW + 1,
-    DUPLICATE_CONFIG.PARENT_EMAIL_COL + 1,
+    1,
     lastRow - DUPLICATE_CONFIG.HEADER_ROW,
-    1
+    Math.max(DUPLICATE_CONFIG.PARENT_EMAIL_COL + 1, DUPLICATE_CONFIG.PARENT_MOBILE_COL + 1, DUPLICATE_CONFIG.TIMESTAMP_COL + 1)
   );
-  const emails = emailRange.getValues().map(row => row[0]);
+  const allData = dataRange.getValues();
 
   const flagRange = sheet.getRange(
     DUPLICATE_CONFIG.HEADER_ROW + 1,
@@ -85,36 +92,88 @@ function checkAllDuplicates(sheet) {
     lastRow - DUPLICATE_CONFIG.HEADER_ROW,
     1
   );
-  const flags = flagRange.getValues();
 
-  // Track first occurrence of each email
-  const emailFirstOccurrence = {};
-  const updates = [];
+  // Build index of rows by email and mobile
+  const rowsByEmailOrMobile = {};
 
-  emails.forEach((email, index) => {
-    const cleanEmail = (email || '').toString().trim().toLowerCase();
+  allData.forEach((row, index) => {
+    const email = (row[DUPLICATE_CONFIG.PARENT_EMAIL_COL] || '').toString().trim().toLowerCase();
+    const mobile = (row[DUPLICATE_CONFIG.PARENT_MOBILE_COL] || '').toString().trim();
+    const timestamp = row[DUPLICATE_CONFIG.TIMESTAMP_COL];
 
-    if (!cleanEmail || cleanEmail === '') {
-      // Empty email - set to No
-      updates.push([DUPLICATE_CONFIG.DUPLICATE_NO]);
-      return;
+    const rowInfo = {
+      index: index,
+      email: email,
+      mobile: mobile,
+      timestamp: timestamp ? new Date(timestamp) : new Date(0)
+    };
+
+    // Index by email if present
+    if (email && email !== '') {
+      if (!rowsByEmailOrMobile[email]) {
+        rowsByEmailOrMobile[email] = [];
+      }
+      rowsByEmailOrMobile[email].push(rowInfo);
     }
 
-    if (emailFirstOccurrence[cleanEmail] === undefined) {
-      // First occurrence - set to No
-      emailFirstOccurrence[cleanEmail] = index;
-      updates.push([DUPLICATE_CONFIG.DUPLICATE_NO]);
-    } else {
-      // Duplicate - set to Yes
-      updates.push([DUPLICATE_CONFIG.DUPLICATE_YES]);
+    // Index by mobile if present (separate key to avoid collision)
+    if (mobile && mobile !== '') {
+      const mobileKey = 'mobile:' + mobile;
+      if (!rowsByEmailOrMobile[mobileKey]) {
+        rowsByEmailOrMobile[mobileKey] = [];
+      }
+      rowsByEmailOrMobile[mobileKey].push(rowInfo);
+    }
+  });
+
+  // Determine duplicate flags based on timestamp
+  const updates = new Array(allData.length).fill([DUPLICATE_CONFIG.DUPLICATE_NO]);
+
+  Object.keys(rowsByEmailOrMobile).forEach(key => {
+    const rows = rowsByEmailOrMobile[key];
+
+    if (rows.length > 1) {
+      // Sort by timestamp (oldest first)
+      rows.sort((a, b) => a.timestamp - b.timestamp);
+
+      // Oldest = No, all others = Yes
+      rows.forEach((row, i) => {
+        if (i > 0) {
+          // Not the oldest - mark as duplicate
+          updates[row.index] = [DUPLICATE_CONFIG.DUPLICATE_YES];
+        }
+      });
     }
   });
 
   // Batch update all flags
   flagRange.setValues(updates);
 
+  // Apply background colors to duplicate rows
+  const numCols = sheet.getLastColumn();
+  const dataRows = lastRow - DUPLICATE_CONFIG.HEADER_ROW;
+  const allRowsRange = sheet.getRange(
+    DUPLICATE_CONFIG.HEADER_ROW + 1,
+    1,
+    dataRows,
+    numCols
+  );
+  const backgrounds = allRowsRange.getBackgrounds();
+
+  // Color duplicates dark red, clear color for non-duplicates
+  updates.forEach((flagValue, index) => {
+    const isDuplicate = flagValue[0] === DUPLICATE_CONFIG.DUPLICATE_YES;
+    const rowColor = isDuplicate ? '#cc0000' : '#ffffff'; // Dark red or white
+
+    for (let col = 0; col < numCols; col++) {
+      backgrounds[index][col] = rowColor;
+    }
+  });
+
+  allRowsRange.setBackgrounds(backgrounds);
+
   const duplicateCount = updates.filter(row => row[0] === DUPLICATE_CONFIG.DUPLICATE_YES).length;
-  console.log(`✅ Duplicate check complete: ${duplicateCount} duplicates flagged`);
+  console.log(`✅ Duplicate check complete: ${duplicateCount} duplicates flagged (most recent by timestamp)`);
 
   return duplicateCount;
 }

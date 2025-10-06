@@ -469,6 +469,178 @@ This notification was sent by the GenWise Pre-Sales Monitoring System.
     }
 
     /**
+     * Send sync report email
+     * @param {Object} syncReport - Sync report data
+     * @param {Array} recipients - Email addresses to notify
+     * @returns {Promise<boolean>} - Success status
+     */
+    async sendSyncReport(syncReport, recipients = ['rajesh@genwise.in']) {
+        if (!this.transporter) {
+            this.logger.warn('Email transporter not configured. Skipping sync report.');
+            return false;
+        }
+
+        try {
+            const htmlContent = this.buildSyncReportEmailHTML(syncReport);
+            const textContent = this.buildSyncReportEmailText(syncReport);
+
+            const statusIcon = syncReport.success ? '✅' : '❌';
+            const mailOptions = {
+                from: {
+                    name: 'GenWise Pre-Sales CRM Sync',
+                    address: process.env.GMAIL_USERNAME || process.env.SMTP_USERNAME
+                },
+                to: recipients,
+                subject: `${statusIcon} CRM Sync Report - ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`,
+                text: textContent,
+                html: htmlContent,
+                priority: syncReport.success ? 'normal' : 'high'
+            };
+
+            const result = await this.transporter.sendMail(mailOptions);
+            this.logger.info(`Sync report email sent`, {
+                recipients: recipients,
+                messageId: result.messageId,
+                success: syncReport.success
+            });
+
+            return true;
+        } catch (error) {
+            this.logger.error('Failed to send sync report email:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Build HTML content for sync report email
+     * @private
+     */
+    buildSyncReportEmailHTML(report) {
+        const istTime = new Date().toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            dateStyle: 'full',
+            timeStyle: 'medium'
+        });
+
+        const statusColor = report.success ? '#28a745' : '#dc3545';
+        const statusText = report.success ? 'SUCCESS' : 'FAILED';
+        const statusIcon = report.success ? '✅' : '❌';
+
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+                .header { background: ${statusColor}; color: white; padding: 25px; border-radius: 8px 8px 0 0; }
+                .content { background: #f8f9fa; padding: 25px; border-radius: 0 0 8px 8px; }
+                .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+                .stat-box { background: white; padding: 15px; border-radius: 6px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+                .stat-value { font-size: 28px; font-weight: bold; color: ${statusColor}; }
+                .stat-label { font-size: 12px; color: #6c757d; text-transform: uppercase; margin-top: 5px; }
+                .info-box { background: white; padding: 20px; border-radius: 6px; margin: 15px 0; }
+                .footer { text-align: center; margin-top: 20px; color: #6c757d; font-size: 13px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>${statusIcon} CRM Sync ${statusText}</h1>
+                    <p>${istTime}</p>
+                </div>
+
+                <div class="content">
+                    <div class="info-box">
+                        <h3>Status: ${report.message}</h3>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="stat-value">${report.stats?.processed || 0}</div>
+                            <div class="stat-label">Processed</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${report.stats?.created || 0}</div>
+                            <div class="stat-label">Created</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${report.stats?.updated || 0}</div>
+                            <div class="stat-label">Updated</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${report.stats?.skipped || 0}</div>
+                            <div class="stat-label">Skipped</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${report.stats?.duplicates || 0}</div>
+                            <div class="stat-label">Duplicates</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${report.stats?.errors || 0}</div>
+                            <div class="stat-label">Errors</div>
+                        </div>
+                    </div>
+
+                    ${report.rateLimits ? `
+                    <div class="info-box">
+                        <h4>API Rate Limits</h4>
+                        <p>Requests: ${report.rateLimits.requestCount || 0} | Limit: ${report.rateLimits.requestLimit || 'Unknown'}</p>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div class="footer">
+                    <p>Pre-Sales Monitoring System | Master Sheet → FreshSales CRM</p>
+                    <p>Dashboard: <a href="https://dashboard.giftedworld.org">https://dashboard.giftedworld.org</a></p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    /**
+     * Build plain text content for sync report email
+     * @private
+     */
+    buildSyncReportEmailText(report) {
+        const istTime = new Date().toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            dateStyle: 'full',
+            timeStyle: 'medium'
+        });
+
+        const statusText = report.success ? 'SUCCESS' : 'FAILED';
+        const statusIcon = report.success ? '✅' : '❌';
+
+        return `
+${statusIcon} CRM SYNC ${statusText}
+${istTime}
+
+STATUS: ${report.message}
+
+STATISTICS:
+- Processed: ${report.stats?.processed || 0}
+- Created: ${report.stats?.created || 0}
+- Updated: ${report.stats?.updated || 0}
+- Skipped: ${report.stats?.skipped || 0}
+- Duplicates: ${report.stats?.duplicates || 0}
+- Errors: ${report.stats?.errors || 0}
+
+${report.rateLimits ? `API RATE LIMITS:
+Requests: ${report.rateLimits.requestCount || 0}
+Limit: ${report.rateLimits.requestLimit || 'Unknown'}
+` : ''}
+
+Pre-Sales Monitoring System
+Master Sheet → FreshSales CRM
+Dashboard: https://dashboard.giftedworld.org
+        `;
+    }
+
+    /**
      * Send test email
      * @returns {Promise<boolean>} - Success status
      */
