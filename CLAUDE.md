@@ -187,9 +187,13 @@
 - **google-spreadsheet**: MUST use v4.x (v5+ uses ESM, incompatible with PM2 CommonJS)
 - **google-auth-library**: MUST use v9.x (v10+ incompatible with google-spreadsheet@4.1.4, causes silent JWT auth failure)
 - **dotenv**: Requires explicit `require('dotenv').config()` at top of service file (PM2 ecosystem env_file alone insufficient)
-- **Sync Schedule**: Forward hourly (:00), reverse 2-hourly (:00) to reduce API load
+- **Sync Schedule**: Forward hourly (:05) - reduced from 30min to save API load
+- **Status Verification**: DISABLED (proven unnecessary after FreshSales automation disabled)
 
 ## Session Learnings (Expire after 30 days)
+
+### handleExistingParent incomplete code path (Added: 2025-10-11, Expires: 2025-11-10)
+Early return at line 204 bypassed `updateMasterSheetWithCrmLink()` which sets last_synced_at. Records with crm_contact_link processed every sync forever. handleExistingParent() was also missing status/owner/tag updates. Fix: Added all operations to handleExistingParent(), created separate updateMasterSheetSyncTimestamp() helper, added last_synced_at filter to prevent re-processing.
 
 ### Google Forms invisible unicode characters (Added: 2025-10-05, Expires: 2025-11-04)
 Google Forms adds invisible unicode chars (⁠ = U+2060 word joiner) to some form responses. Exact string matching fails. Solution: normalize with `.replace(/[\u200B-\u200D\uFEFF\u2060]/g, '').toLowerCase().trim()` before lookup. Keep spaces intact for multi-word matching.

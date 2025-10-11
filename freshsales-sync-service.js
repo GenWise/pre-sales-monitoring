@@ -50,7 +50,7 @@ class FreshSalesSyncService {
             batchSize: 10,
             syncInterval: {
                 fromFreshSales: null, // DEPRECATED - syncContactsFromFreshSales not used (duplicate detection handles this)
-                toFreshSales: '2,32 * * * *', // Every 30 min at :02 and :32 - new leads AFTER
+                toFreshSales: '5 * * * *', // Every hour at :05 - new leads sync
                 healthCheck: '0 */6 * * *'    // Every 6 hours - system health
             },
 

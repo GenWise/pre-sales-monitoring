@@ -292,6 +292,68 @@ class FreshSalesSync {
     }
 
     /**
+     * Update Master Sheet row with last_synced_at timestamp and row color
+     * IMPORTANT: This function is ONLY called for records that passed sync eligibility filter
+     * (Status = Warm|Hot|Not Interested). Records with "First Call Pending" never reach this code.
+     * @param {Object} leadData - Lead data (must have parent_email or parentEmail)
+     */
+    async updateMasterSheetSyncTimestamp(leadData) {
+        try {
+            // Load Master Sheet
+            let authClient = null;
+            if (this.serviceAccountFile) {
+                const serviceAccountInfo = JSON.parse(await fs.readFile(this.serviceAccountFile, 'utf8'));
+                authClient = new JWT({
+                    email: serviceAccountInfo.client_email,
+                    key: serviceAccountInfo.private_key,
+                    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+                });
+            }
+
+            const doc = new GoogleSpreadsheet(this.masterSheetId, authClient);
+            await doc.loadInfo();
+            const sheet = doc.sheetsByIndex[0];
+            const rows = await sheet.getRows();
+
+            // Find row by email
+            const parentEmail = leadData.parentEmail || leadData['Parent Email'] || leadData.parent_email;
+            const targetRow = rows.find(row => {
+                const rowEmail = row.get('parent_email') || row.get('Parent Email');
+                return rowEmail && parentEmail && rowEmail.toLowerCase() === parentEmail.toLowerCase();
+            });
+
+            if (targetRow) {
+                // Convert UTC to IST (UTC+5:30)
+                const now = new Date();
+                const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+                const istTime = new Date(now.getTime() + istOffset).toISOString().replace('Z', '+05:30');
+                targetRow.set('last_synced_at', istTime);
+
+                // Set light red background color for ALL sync-eligible records
+                // No defensive check needed - this function only called for Warm|Hot|Not Interested
+                console.log(`🎨 Applying background color to synced row`);
+                await sheet.loadCells();
+                const rowIndex = targetRow.rowNumber - 1; // 0-indexed
+                const numCols = sheet.columnCount;
+
+                for (let col = 0; col < numCols; col++) {
+                    const cell = sheet.getCell(rowIndex, col);
+                    cell.backgroundColor = { red: 244/255, green: 204/255, blue: 204/255 };
+                }
+
+                await sheet.saveUpdatedCells();
+                await targetRow.save();
+                console.log(`✅ Updated Master Sheet last_synced_at timestamp for: ${parentEmail}`);
+            } else {
+                console.warn(`⚠️  Could not find Master Sheet row for email: ${parentEmail}`);
+            }
+        } catch (error) {
+            console.warn(`⚠️  Failed to update Master Sheet timestamp:`, error.message);
+            // Non-blocking - Master Sheet update failure doesn't stop sync
+        }
+    }
+
+    /**
      * Process individual contact from FreshSales
      * @param {Object} contactData - Contact data from FreshSales
      */
@@ -505,6 +567,81 @@ class FreshSalesSync {
                 this.syncStats.updated++;
             } else {
                 console.log(`No new contact fields to add for ${contactId}`);
+            }
+
+            // STEP 4: Update contact status (forward sync from Master Sheet)
+            const status = leadData.status || leadData.Status;
+            const statusId = this.mapper.mapStatusToContactStatus(status);
+
+            if (statusId) {
+                try {
+                    // DEBUG: Read current status BEFORE update to detect FreshSales automation changes
+                    const preUpdateContact = await this.client.getContact(contactId);
+                    const currentStatusId = preUpdateContact.contact?.contact_status_id;
+                    console.log(`📊 [DEBUG] Contact ${contactId} status BEFORE update: ${currentStatusId}`);
+                    console.log(`📊 Updating contact status to: ${status} (${statusId})`);
+
+                    await this.client.updateContact(contactId, {
+                        contact_status_id: statusId
+                    }, true); // true = include contact_status param
+
+                    // DEBUG: Verify status immediately after update
+                    const postUpdateContact = await this.client.getContact(contactId);
+                    const newStatusId = postUpdateContact.contact?.contact_status_id;
+                    console.log(`📊 [DEBUG] Contact ${contactId} status AFTER update: ${newStatusId}`);
+
+                    if (newStatusId === statusId) {
+                        console.log(`✅ Contact status updated and verified: ${status} (${statusId})`);
+                    } else {
+                        console.warn(`⚠️  [AUTOMATION DETECTED] Status changed from ${statusId} to ${newStatusId} immediately after update!`);
+                    }
+                } catch (error) {
+                    console.warn(`⚠️  Failed to update contact status: ${error.message}`);
+                }
+            }
+
+            // STEP 5: Update parent owner (forward sync from Master Sheet)
+            const parentOwner = leadData.assigned_owner || leadData['assigned_owner'] || leadData.assignedOwner;
+            if (parentOwner && parentOwner !== 'Unassigned') {
+                try {
+                    console.log(`👤 Updating parent owner to: ${parentOwner}`);
+                    await this.client.updateContact(contactId, {
+                        custom_field: { cf_parent_owner: parentOwner }
+                    }, true);
+                    console.log(`✅ Parent owner updated successfully`);
+                } catch (error) {
+                    console.warn(`⚠️  Failed to update parent owner: ${error.message}`);
+                }
+            }
+
+            // STEP 6: Add source tag (append, don't replace)
+            const sourceTag = leadData.source_tag || leadData['source_tag'] || leadData.sourceTag;
+            if (sourceTag) {
+                try {
+                    const fullContact = await this.client.getContact(contactId);
+                    const existingTags = fullContact.contact?.tags || [];
+                    const newTag = `gsp2026_${sourceTag}_form`;
+
+                    if (!existingTags.includes(newTag)) {
+                        console.log(`🏷️  Adding source tag: ${newTag}`);
+                        await this.client.updateContact(contactId, {
+                            tags: [...existingTags, newTag]
+                        });
+                        console.log(`✅ Source tag added successfully`);
+                    } else {
+                        console.log(`Tag "${newTag}" already exists - skipping`);
+                    }
+                } catch (error) {
+                    console.warn(`⚠️  Failed to add source tag: ${error.message}`);
+                }
+            }
+
+            // STEP 7: Set last_synced_at in Master Sheet (prevents re-processing)
+            try {
+                await this.updateMasterSheetSyncTimestamp(leadData);
+                console.log(`✅ Master Sheet last_synced_at timestamp updated`);
+            } catch (error) {
+                console.warn(`⚠️  Failed to update Master Sheet timestamp: ${error.message}`);
             }
 
         } catch (error) {
@@ -781,6 +918,13 @@ TRACKING: Contact ${contactChangeId} | Deal ${dealChangeId}`;
                 filteredLeads = filteredLeads.filter(lead => {
                     const status = (lead.Status || lead.status || lead['Interest Level'] || '').toLowerCase();
                     return syncEligibleStatuses.includes(status);
+                });
+
+                // Filter out already-synced records (per SYNC_LOGIC.md spec)
+                // Records with last_synced_at timestamp are excluded to prevent re-processing
+                filteredLeads = filteredLeads.filter(lead => {
+                    const lastSynced = lead.last_synced_at || lead['last_synced_at'] || lead.lastSyncedAt;
+                    return !lastSynced || lastSynced === '';
                 });
             }
 

@@ -38,6 +38,7 @@ class StatusVerificationService {
     async run() {
         console.log('\n🔍 Starting Contact Status Verification...');
         console.log(`Time: ${new Date().toISOString()}`);
+        console.log(`[TESTING] Checking if status verification is still needed after disabling FreshSales automation`);
 
         try {
             // Get contacts created in last 10 minutes with crm_contact_link
@@ -45,24 +46,31 @@ class StatusVerificationService {
             console.log(`Found ${recentContacts.length} recently created contacts to verify`);
 
             if (recentContacts.length === 0) {
-                console.log('✅ No contacts to verify');
+                console.log('✅ No contacts to verify - this is EXPECTED if sync frequency is now hourly');
+                console.log('[TESTING] If this script consistently finds 0 contacts or 0 fixes, it can be disabled');
                 return { success: true, verified: 0, fixed: 0 };
             }
 
             let verified = 0;
             let fixed = 0;
+            let alreadyCorrect = 0;
 
             for (const row of recentContacts) {
                 const result = await this.verifyAndFixStatus(row);
                 verified++;
-                if (result.fixed) fixed++;
+                if (result.fixed) {
+                    fixed++;
+                } else if (result.alreadyCorrect) {
+                    alreadyCorrect++;
+                }
 
                 // Rate limiting
                 await this.sleep(500);
             }
 
-            console.log(`\n✅ Verification complete: ${verified} checked, ${fixed} fixed\n`);
-            return { success: true, verified, fixed };
+            console.log(`\n✅ Verification complete: ${verified} checked, ${alreadyCorrect} already correct, ${fixed} fixed`);
+            console.log(`[TESTING] If fixed=0 consistently, this script is no longer needed\n`);
+            return { success: true, verified, fixed, alreadyCorrect };
 
         } catch (error) {
             console.error('❌ Status verification failed:', error.message);
@@ -140,19 +148,20 @@ class StatusVerificationService {
             console.log(`   Current:  ${currentStatusId}`);
 
             if (currentStatusId === expectedStatusId) {
-                console.log(`   ✅ Status correct - no action needed`);
-                return { fixed: false };
+                console.log(`   ✅ Status correct - no action needed [GOOD - automation not interfering]`);
+                return { fixed: false, alreadyCorrect: true };
             }
 
             // Status mismatch - re-apply
-            console.log(`   🔧 Status mismatch - re-applying...`);
+            console.log(`   🔧 [WARNING] Status mismatch detected - FreshSales automation may still be active!`);
+            console.log(`   Re-applying correct status...`);
 
             await this.client.updateContact(contactId, {
                 contact_status_id: expectedStatusId
             });
 
             console.log(`   ✅ Status fixed: ${expectedStatus}`);
-            return { fixed: true };
+            return { fixed: true, alreadyCorrect: false };
 
         } catch (error) {
             console.error(`   ❌ Error verifying contact:`, error.message);

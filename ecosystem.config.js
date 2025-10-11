@@ -18,14 +18,18 @@ module.exports = {
       log_file: './logs/pm2-combined.log',
       time: true,
       kill_timeout: 5000
-    },
+    }
+    // status-verification DISABLED - FreshSales automation no longer interferes with contact_status_id
+    // Proven unnecessary on 2025-10-11 after disabling "When child is added, change parent's stage to Lead" rule
+    // Debug logs showed 0 fixes needed consistently
+    /*
     {
       name: 'status-verification',
       script: 'status-verification-service.js',
       cwd: '/root/pre-sales-monitoring',
       instances: 1,
       autorestart: false,
-      cron_restart: '4,34 * * * *', // Run at :04 and :34 (2 min after forward sync at :02/:32)
+      cron_restart: '8 * * * *', // Run at :08 (3 min after forward sync at :05) - DISABLED
       watch: false,
       env_file: '.env',
       env: {
@@ -35,5 +39,6 @@ module.exports = {
       out_file: './logs/status-verification-out.log',
       time: true
     }
+    */
   ]
 };
