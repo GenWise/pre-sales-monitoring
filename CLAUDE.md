@@ -192,6 +192,9 @@
 
 ## Session Learnings (Expire after 30 days)
 
+### Defensive logic based on incorrect assumptions (Added: 2025-10-11, Expires: 2025-11-10)
+updateMasterSheetSyncTimestamp() had defensive shouldColor check assuming function could receive "First Call Pending" records. Incorrect - function only called AFTER sync eligibility filter (Warm|Hot|Not Interested). Defensive check prevented re-coloring of already-synced records on subsequent syncs. Fix: Remove defensive logic when function constraints make it unnecessary. Trust caller's filtering.
+
 ### handleExistingParent incomplete code path (Added: 2025-10-11, Expires: 2025-11-10)
 Early return at line 204 bypassed `updateMasterSheetWithCrmLink()` which sets last_synced_at. Records with crm_contact_link processed every sync forever. handleExistingParent() was also missing status/owner/tag updates. Fix: Added all operations to handleExistingParent(), created separate updateMasterSheetSyncTimestamp() helper, added last_synced_at filter to prevent re-processing.
 
