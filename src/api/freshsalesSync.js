@@ -636,7 +636,24 @@ class FreshSalesSync {
                 }
             }
 
-            // STEP 7: Set last_synced_at in Master Sheet (prevents re-processing)
+            // STEP 7: Add note from Column L (new call notes for existing parents)
+            const notes = leadData.notes || leadData.Notes || '';
+            if (notes && notes.trim()) {
+                const noteContent = `Follow-up from ${new Date().toLocaleDateString('en-IN')}
+Child: ${childName || 'N/A'}
+Source: ${sourceTag || 'Unknown'}
+
+${notes}
+
+[Auto-synced from Master Sheet - Column L]`;
+
+                console.log(`📝 Creating note for existing parent ${contactId} (${notes.length} chars)`);
+                await this.addContactNote(contactId, noteContent);
+            } else {
+                console.log(`No notes in Column L - skipping note creation`);
+            }
+
+            // STEP 8: Set last_synced_at in Master Sheet (prevents re-processing)
             try {
                 await this.updateMasterSheetSyncTimestamp(leadData);
                 console.log(`✅ Master Sheet last_synced_at timestamp updated`);
@@ -846,10 +863,12 @@ TRACKING: Contact ${contactChangeId} | Deal ${dealChangeId}`;
                 return;
             }
 
+            console.log(`📝 Note content preview: ${noteContent.substring(0, 100)}...`);
             await this.client.createNote(contactId, noteContent);
-            console.log(`✅ Added note to contact ${contactId}`);
+            console.log(`✅ Added note to contact ${contactId} (${noteContent.length} chars)`);
         } catch (error) {
             console.warn(`⚠️  Failed to add note to contact ${contactId}:`, error.message);
+            console.warn(`⚠️  Note content that failed: ${noteContent.substring(0, 200)}`);
             // Non-blocking - note failure doesn't stop sync
         }
     }

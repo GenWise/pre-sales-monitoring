@@ -321,19 +321,22 @@ class FreshSalesClient {
                 targetable_type: 'Contact'
             };
 
+            console.log(`🔍 DEBUG: Note creation request payload:`, JSON.stringify({ note: noteData }, null, 2).substring(0, 300));
+
             const response = await this.axiosInstance({
                 method: 'post',
                 url: '/notes',
                 data: { note: noteData }
             });
 
+            console.log(`📥 DEBUG: Note creation response status: ${response.status}`);
             return {
                 statusCode: response.status,
                 data: response.data
             };
         } catch (error) {
             // If that fails, try alternate endpoint pattern
-            console.warn('Primary notes endpoint failed, trying alternate...');
+            console.warn('Primary notes endpoint failed, trying alternate...', error.message);
             const altResponse = await this.makeRequestWithRetry('/notes', 'POST', {
                 note: {
                     description: noteContent,
