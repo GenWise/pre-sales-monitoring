@@ -512,6 +512,44 @@ This notification was sent by the GenWise Pre-Sales Monitoring System.
     }
 
     /**
+     * Send a plain-text alert email (errors, health alerts)
+     * @param {string} subject - Email subject
+     * @param {string} textBody - Plain text body
+     * @param {Array} recipients - Email addresses to notify
+     * @returns {Promise<boolean>} - Success status
+     */
+    async sendAlertEmail(subject, textBody, recipients = ['rajesh@genwise.in']) {
+        if (!this.transporter) {
+            this.logger.warn('Email transporter not configured. Skipping alert email.');
+            return false;
+        }
+
+        try {
+            const result = await this.transporter.sendMail({
+                from: {
+                    name: 'GenWise Pre-Sales CRM Sync',
+                    address: process.env.GMAIL_USERNAME || process.env.SMTP_USERNAME
+                },
+                to: recipients,
+                subject: subject,
+                text: textBody,
+                priority: 'high'
+            });
+
+            this.logger.info('Alert email sent', {
+                subject: subject,
+                recipients: recipients,
+                messageId: result.messageId
+            });
+
+            return true;
+        } catch (error) {
+            this.logger.error('Failed to send alert email:', error);
+            return false;
+        }
+    }
+
+    /**
      * Build HTML content for sync report email
      * @private
      */

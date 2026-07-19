@@ -8,7 +8,7 @@
  * - Real-time sync from Google Sheets to FreshSales (new leads)
  * - Regular sync from FreshSales to Google Sheets (status updates)
  * - Comprehensive error handling and monitoring
- * - Slack notifications for sync status
+ * - Email notifications for sync status
  * - Production logging and monitoring
  * - Configurable sync schedules
  * - Duplicate prevention and handling
@@ -23,7 +23,6 @@ const EmailNotifier = require('./src/notifications/emailNotifier');
 const cron = require('node-cron');
 const fs = require('fs').promises;
 const path = require('path');
-const https = require('https');
 
 class FreshSalesSyncService {
     constructor() {
@@ -35,9 +34,6 @@ class FreshSalesSyncService {
             // FreshSales configuration
             freshsalesApiKey: process.env.FRESHSALES_API_KEY || '[SET_FRESHSALES_API_KEY]',
             freshsalesDomain: 'genwisecrm.myfreshworks.com',
-
-            // Slack notifications
-            slackWebhook: process.env.SLACK_WEBHOOK_URL || process.env.SLACK_WEBHOOK || '[SET_SLACK_WEBHOOK_URL]',
 
             // Email notifications
             notifications: {
@@ -118,16 +114,6 @@ class FreshSalesSyncService {
             this.scheduleFromFreshSalesSync();
             this.scheduleHealthCheck();
 
-            // Send startup notification
-            await this.sendSlackNotification(
-                '🚀 FreshSales Sync Service Started',
-                `Service started successfully in ${this.config.environment} mode\n` +
-                `• Sync from FreshSales: ${this.config.syncInterval.fromFreshSales} (CRM → Sheets FIRST)\n` +
-                `• Sync to FreshSales: ${this.config.syncInterval.toFreshSales} (Sheets → CRM 5min after)\n` +
-                `• Health checks: ${this.config.syncInterval.healthCheck}`,
-                'good'
-            );
-
             this.log('SERVICE_START', 'Sync service started successfully');
             console.log('✅ FreshSales Sync Service is now running');
             console.log(`📊 Monitor at: ${this.getMonitoringUrl()}`);
@@ -153,12 +139,6 @@ class FreshSalesSyncService {
 
         // Stop all cron jobs
         cron.getTasks().forEach(task => task.destroy());
-
-        await this.sendSlackNotification(
-            '⏹️ FreshSales Sync Service Stopped',
-            'Sync service has been stopped gracefully',
-            'warning'
-        );
 
         this.log('SERVICE_STOP', 'Sync service stopped');
         console.log('✅ FreshSales Sync Service stopped');
@@ -240,11 +220,13 @@ class FreshSalesSyncService {
                 stats: result.stats
             });
 
-            // Send notification for all sync runs (monitoring)
-            await this.sendSyncNotification('to_freshsales', result, Date.now() - startTime.getTime(), duplicateResult);
-
-            // Send email report
-            await this.emailNotifier.sendSyncReport(result, ['rajesh@genwise.in']);
+            // Only send email report if something changed (reduces hourly noise)
+            const hasChanges = (result.stats.created > 0 || result.stats.updated > 0 || result.stats.errors > 0);
+            if (hasChanges) {
+                await this.emailNotifier.sendSyncReport(result, ['rajesh@genwise.in']);
+            } else {
+                console.log('📊 No changes this sync cycle, skipping email report');
+            }
 
             return result;
 
@@ -289,9 +271,9 @@ class FreshSalesSyncService {
                 stats: result.stats
             });
 
-            // Send notification for sync results
+            // Send email report for sync results
             if (result.stats.updated > 0 || result.stats.errors > 0) {
-                await this.sendSyncNotification('from_freshsales', result, Date.now() - startTime.getTime());
+                await this.emailNotifier.sendSyncReport(result, ['rajesh@genwise.in']);
             }
 
             return result;
@@ -334,12 +316,6 @@ class FreshSalesSyncService {
 
             results.duration = Date.now() - startTime.getTime();
             results.success = true;
-
-            await this.sendSlackNotification(
-                '✅ Full Bidirectional Sync Complete',
-                this.formatSyncResults(results),
-                'good'
-            );
 
             return results;
 
@@ -441,12 +417,6 @@ class FreshSalesSyncService {
                     break;
             }
 
-            await this.sendSlackNotification(
-                '⚡ Manual Sync Complete',
-                `Manual sync (${direction}) completed successfully`,
-                'good'
-            );
-
             return result;
 
         } catch (error) {
@@ -486,85 +456,6 @@ class FreshSalesSyncService {
     }
 
     /**
-     * Send Slack notification
-     */
-    async sendSlackNotification(title, message, color = 'good') {
-        if (!this.config.slackWebhook) {
-            console.warn('Slack webhook not configured');
-            return;
-        }
-
-        const payload = {
-            text: title,
-            attachments: [{
-                color: color,
-                text: message,
-                footer: `FreshSales Sync Service (${this.config.environment})`,
-                ts: Math.floor(Date.now() / 1000)
-            }]
-        };
-
-        try {
-            await this.makeHttpRequest(this.config.slackWebhook, 'POST', payload);
-            console.log('📱 Slack notification sent');
-        } catch (error) {
-            console.error('Failed to send Slack notification:', error.message);
-        }
-    }
-
-    /**
-     * Send sync completion notification with J1/J2/J3 format
-     */
-    async sendSyncNotification(direction, result, duration, duplicateResult = null) {
-        const emoji = direction === 'to_freshsales' ? '📤' : '📥';
-        const directionText = direction === 'to_freshsales' ? 'Google Sheets → FreshSales' : 'FreshSales → Google Sheets';
-
-        // Convert to IST
-        const now = new Date();
-        const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000))
-            .toISOString()
-            .replace('T', ' ')
-            .substring(0, 19) + ' IST';
-
-        const utcTime = now.toISOString().substring(11, 19) + ' UTC';
-
-        let message = `*${utcTime} / ${istTime}*\n\n`;
-
-        // J1 - Duplicate Detection
-        if (duplicateResult) {
-            message += `*J1 - Duplicate Detection:*\n`;
-            message += `- Processed ${duplicateResult.stats.totalRecords || 0} records, found ${duplicateResult.stats.duplicatesFound || 0} duplicates\n`;
-            if (duplicateResult.stats.duplicatesFound > 0) {
-                message += `- (Details available in Master Sheet duplicate_flag column)\n`;
-            }
-            message += `\n`;
-        }
-
-        // J2 - Forward Sync
-        message += `*J2 - Forward Sync (${directionText}):*\n`;
-        message += `- Duration: ${Math.round(duration / 1000)}s\n`;
-        message += `- Processed: ${result.stats.processed || 0}, Created: ${result.stats.created || 0}, Updated: ${result.stats.updated || 0}, Skipped: ${result.stats.skipped || 0}, Errors: ${result.stats.errors || 0}\n`;
-
-        // Show created contacts with details
-        if (result.createdContacts && result.createdContacts.length > 0) {
-            message += `- *Created:*\n`;
-            result.createdContacts.forEach(contact => {
-                message += `  • ${contact.childName} → ${contact.contactUrl} (Status: ${contact.status}, Owner: ${contact.owner})\n`;
-            });
-        } else if (result.stats.created === 0) {
-            message += `- No contacts created\n`;
-        }
-
-        message += `\n*J3 - Status Verification:*\n`;
-        message += `- Runs at :04 and :34 past the hour\n`;
-        message += `- Verifies contact_status_id for recently synced contacts`;
-
-        const color = result.stats.errors > 0 ? 'warning' : 'good';
-
-        await this.sendSlackNotification(`${emoji} Sync Complete`, message, color);
-    }
-
-    /**
      * Send error notification
      */
     async sendErrorNotification(title, error) {
@@ -574,7 +465,7 @@ class FreshSalesSyncService {
             `Time: ${new Date().toISOString()}\n` +
             `Environment: ${this.config.environment}`;
 
-        await this.sendSlackNotification('🚨 Sync Error', message, 'danger');
+        await this.emailNotifier.sendAlertEmail(`🚨 CRM Sync Error - ${title}`, message);
 
         // Also log to file
         this.log('ERROR_NOTIFICATION', title, { error: error.message, stack: error.stack });
@@ -600,21 +491,7 @@ class FreshSalesSyncService {
             issues.map(issue => `• ${issue}`).join('\n') +
             `\nUptime: ${Math.round(healthData.service.uptime / 1000 / 60)} minutes`;
 
-        await this.sendSlackNotification('⚠️ Health Alert', message, 'warning');
-    }
-
-    /**
-     * Format sync results for display
-     */
-    formatSyncResults(results) {
-        const toStats = results.toFreshSales?.stats || {};
-        const fromStats = results.fromFreshSales?.stats || {};
-
-        return (
-            `📤 To FreshSales: ${toStats.created || 0} created, ${toStats.updated || 0} updated, ${toStats.errors || 0} errors\n` +
-            `📥 From FreshSales: ${fromStats.updated || 0} updated, ${fromStats.errors || 0} errors\n` +
-            `Duration: ${Math.round(results.duration / 1000)}s`
-        );
+        await this.emailNotifier.sendAlertEmail('⚠️ CRM Sync Health Alert', message);
     }
 
     /**
@@ -665,49 +542,6 @@ class FreshSalesSyncService {
 
         // Also log to console
         console.log(`[${level}] ${message}`, Object.keys(data).length > 0 ? data : '');
-    }
-
-    /**
-     * Make HTTP request
-     */
-    async makeHttpRequest(url, method = 'GET', data = null) {
-        return new Promise((resolve, reject) => {
-            const urlObj = new URL(url);
-            const options = {
-                hostname: urlObj.hostname,
-                port: urlObj.port || 443,
-                path: urlObj.pathname + urlObj.search,
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            };
-
-            if (data) {
-                const jsonData = JSON.stringify(data);
-                options.headers['Content-Length'] = Buffer.byteLength(jsonData);
-            }
-
-            const req = https.request(options, (res) => {
-                let body = '';
-                res.on('data', chunk => body += chunk);
-                res.on('end', () => {
-                    if (res.statusCode >= 200 && res.statusCode < 300) {
-                        resolve({ statusCode: res.statusCode, body });
-                    } else {
-                        reject(new Error(`HTTP ${res.statusCode}: ${body}`));
-                    }
-                });
-            });
-
-            req.on('error', reject);
-
-            if (data) {
-                req.write(JSON.stringify(data));
-            }
-
-            req.end();
-        });
     }
 }
 
