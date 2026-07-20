@@ -187,28 +187,21 @@
 - **google-spreadsheet**: MUST use v4.x (v5+ uses ESM, incompatible with PM2 CommonJS)
 - **google-auth-library**: MUST use v9.x (v10+ incompatible with google-spreadsheet@4.1.4, causes silent JWT auth failure)
 - **dotenv**: Requires explicit `require('dotenv').config()` at top of service file (PM2 ecosystem env_file alone insufficient)
-- **Sync Schedule**: Forward hourly (:05) - reduced from 30min to save API load
+- **Sync Schedule**: 5x daily at 9am/12pm/3pm/6pm/9pm IST (cron `30 3,6,9,12,15 * * *` UTC) - reduced from hourly on 2026-07-20 after programs completed; see wiki pre-sales-monitoring.md Design Decisions
 - **Status Verification**: DISABLED (proven unnecessary after FreshSales automation disabled)
 
 ## Session Learnings (Expire after 30 days)
 
+### Notes only created for new contacts, not existing parents (Added: 2025-10-19, Expires: 2025-11-18)
+handleExistingParent() had 7 steps but no note creation. Notes from Column L silently dropped for existing parents. Fix: Added STEP 7 note creation. Impact: Existing parents from previous years now receive new call notes when Column L populated. Lesson: When adding features to one code path, audit parallel paths for feature parity.
+
 ### Defensive logic based on incorrect assumptions (Added: 2025-10-11, Expires: 2025-11-10)
 updateMasterSheetSyncTimestamp() had defensive shouldColor check assuming function could receive "First Call Pending" records. Incorrect - function only called AFTER sync eligibility filter (Warm|Hot|Not Interested). Defensive check prevented re-coloring of already-synced records on subsequent syncs. Fix: Remove defensive logic when function constraints make it unnecessary. Trust caller's filtering.
 
-### handleExistingParent incomplete code path (Added: 2025-10-11, Expires: 2025-11-10)
-Early return at line 204 bypassed `updateMasterSheetWithCrmLink()` which sets last_synced_at. Records with crm_contact_link processed every sync forever. handleExistingParent() was also missing status/owner/tag updates. Fix: Added all operations to handleExistingParent(), created separate updateMasterSheetSyncTimestamp() helper, added last_synced_at filter to prevent re-processing.
-
 ### Google Forms invisible unicode characters (Added: 2025-10-05, Expires: 2025-11-04)
 Google Forms adds invisible unicode chars (⁠ = U+2060 word joiner) to some form responses. Exact string matching fails. Solution: normalize with `.replace(/[\u200B-\u200D\uFEFF\u2060]/g, '').toLowerCase().trim()` before lookup. Keep spaces intact for multi-word matching.
-
-### Form-bound Apps Script clasp sync unreliable (Added: 2025-10-05, Expires: 2025-11-04)
-`clasp push --force` sometimes doesn't update Google's copy. User sees old version in editor despite successful push. Manual copy-paste to Apps Script editor more reliable for form-bound scripts. Use clasp for standalone projects only.
-
-### FreshSales API key has search but not list permission (Added: 2025-10-04, Expires: 2025-11-03)
-Current API key (awiMf4YWS-S4wE_10pUmHQ) works with GET /search, POST /contacts, PUT /contacts but fails on GET /contacts (403). Use /search endpoint for health checks and duplicate detection. Sync operations already use permitted endpoints so no functional impact.
-
-### Deal contacts_added_list is write-only (Added: 2025-10-04, Expires: 2025-11-03)
-FreshSales API accepts `contacts_added_list` during POST /deals but doesn't return it in GET /deals response. Linkage works in UI and via /contacts/{id}/deals endpoint. Not a bug - field is write-only for deals endpoint.
-
-### google-spreadsheet v5+ ESM incompatibility (Added: 2025-10-04, Expires: 2025-11-03)
-v5.0.2+ uses ESM modules causing "ERR_REQUIRE_ESM" with PM2's CommonJS require() loader. Use v4.1.4 for CommonJS projects. Install with --legacy-peer-deps due to google-auth-library peer dependency conflict.
+## Wiki
+Before cross-project lookups, tool use, or deployment: check `~/wiki/` for patterns and gotchas.
+For questions about other projects: `~/wiki/index.md` → find the project → read it.
+Write back: if you learn something new or find a wiki article wrong, update it before ending the session.
+Full lookup instructions in `~/CLAUDE.md`.
