@@ -147,12 +147,30 @@ class DuplicateDetector {
             scopes: ['https://www.googleapis.com/auth/spreadsheets']
         });
 
-        const doc = new GoogleSpreadsheet(this.masterSheetId, authClient);
-        await doc.loadInfo();
-        const sheet = doc.sheetsByIndex[0];
-        const rows = await sheet.getRows();
-
-        return { doc, sheet, rows };
+        // Google Sheets returns 5xx transiently. Without a retry a single 503
+        // aborts the whole sync run, which is what happened on 2026-08-17 06:33 UTC.
+        // Three attempts, 2s/4s/8s, then give up and let the caller report it.
+        const MAX_ATTEMPTS = 3;
+        let lastError;
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+                const doc = new GoogleSpreadsheet(this.masterSheetId, authClient);
+                await doc.loadInfo();
+                const sheet = doc.sheetsByIndex[0];
+                const rows = await sheet.getRows();
+                if (attempt > 1) console.log(`   ✓ Master sheet loaded on attempt ${attempt}`);
+                return { doc, sheet, rows };
+            } catch (error) {
+                lastError = error;
+                const status = error.response?.status || error.status;
+                const retryable = !status || status >= 500 || status === 429;
+                if (!retryable || attempt === MAX_ATTEMPTS) break;
+                const waitMs = 2000 * Math.pow(2, attempt - 1);
+                console.warn(`   ⚠ Master sheet read failed (${status || error.message}); retrying in ${waitMs}ms (${attempt}/${MAX_ATTEMPTS - 1})`);
+                await new Promise(r => setTimeout(r, waitMs));
+            }
+        }
+        throw lastError;
     }
 
     getFieldValue(row, fieldName) {

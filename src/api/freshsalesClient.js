@@ -64,6 +64,15 @@ class FreshSalesClient {
         if (headers['per-min-x-ratelimit-reset']) {
             this.rateLimits.perMinute.resetTime = new Date(parseInt(headers['per-min-x-ratelimit-reset']) * 1000);
         }
+
+        // On 2026-08-17 the account burned all 1,000 hourly calls and nothing could
+        // say what spent them: FreshSales exposes only the live counter, no usage
+        // history, and no audit-log endpoint. Logging the remaining count whenever
+        // it drops below a quarter makes the next occurrence attributable to a run.
+        const { remaining, limit } = this.rateLimits.hourly;
+        if (limit && remaining !== null && remaining < limit * 0.25) {
+            console.warn(`[freshsales] hourly quota low: ${remaining}/${limit} remaining, resets ${this.rateLimits.hourly.resetTime || 'unknown'}`);
+        }
     }
 
     /**
