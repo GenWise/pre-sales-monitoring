@@ -24,7 +24,7 @@ const CONFIG = {
 
   // Notification settings
   SEND_EMAIL: true,
-  SEND_SLACK: true, // Slack webhook configured
+  SEND_SLACK: false, // Disabled - form scripts already post to Slack (was causing duplicates)
 
   // Master Sheet column indices (0-based)
   COLUMNS: {

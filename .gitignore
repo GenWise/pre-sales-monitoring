@@ -114,3 +114,4 @@ local.json
 *.sqlite
 *.sqlite3
 *.db
+.claude/handover-prompt.txt
